@@ -1,7 +1,9 @@
+import type { Types } from 'mongoose';
+
 declare global {
   namespace Express {
     interface User {
-      _id: string | import('mongoose').Types.ObjectId;
+      _id: string | Types.ObjectId;
       name: string;
       email: string;
       role: 'super_admin' | 'admin';
@@ -9,11 +11,11 @@ declare global {
       isActive: boolean;
       [k: string]: any;
     }
-
-    interface Request {
-      user?: User;
-    }
   }
 }
 
-export {};
+declare module 'express-serve-static-core' {
+  interface Request {
+    user?: Express.User;
+  }
+}

@@ -3,7 +3,7 @@ import { catchAsync, sendSuccess } from '../utils';
 import * as UserService from './user.service';
 
 export const createAdmin: RequestHandler = catchAsync(async (req, res) => {
-  const data = await UserService.createAdmin(req.body, String(req.user?._id));
+  const data = await UserService.createAdmin(req.body, String((req as any).user?._id));
   sendSuccess(res, 'Admin user created successfully', data, 201);
 });
 

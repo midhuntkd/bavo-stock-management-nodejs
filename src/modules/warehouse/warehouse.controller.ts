@@ -3,7 +3,7 @@ import { catchAsync, sendSuccess } from '../utils';
 import * as WarehouseService from './warehouse.service';
 
 export const create: RequestHandler = catchAsync(async (req, res) => {
-  const data = await WarehouseService.createWarehouse(req.body, String(req.user?._id));
+  const data = await WarehouseService.createWarehouse(req.body, String((req as any).user?._id));
   sendSuccess(res, 'Warehouse created successfully', data, 201);
 });
 
