@@ -13,6 +13,12 @@ const movementBody = {
 export const create = validate({
   body: Joi.object({
     productName: Joi.string().required(),
+    hsnCode: Joi.string().required(),
+    barcode: Joi.string().required(),
+    salePrice: Joi.number().min(0).required(),
+    gst: Joi.number().min(0).required(),
+    mrp: Joi.number().min(0).required(),
+    actualPrice: Joi.number().min(0).required(),
     sku: Joi.string().required(),
     warehouseId: objectId.required(),
     quantity: Joi.number().min(0).required(),
@@ -41,10 +47,16 @@ export const idParam = validate({
 export const update = validate({
   body: Joi.object({
     productName: Joi.string(),
+    hsnCode: Joi.string(),
+    barcode: Joi.string(),
+    salePrice: Joi.number().min(0),
+    gst: Joi.number().min(0),
+    mrp: Joi.number().min(0),
+    actualPrice: Joi.number().min(0),
     unit: Joi.string(),
     minimumStockLevel: Joi.number().min(0),
     status: Joi.string().valid('active', 'inactive'),
-  }).min(1),
+  }),
 });
 
 export const stockIn = validate({ body: Joi.object(movementBody) });

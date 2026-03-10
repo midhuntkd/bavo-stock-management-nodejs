@@ -80,6 +80,7 @@ Configurable via env:
 `/api/v1`
 
 ## Main Endpoints
+- Health: `/health`
 - Auth: `/auth/*`
 - Admin users: `/admin-users/*`
 - Permissions: `/permissions`

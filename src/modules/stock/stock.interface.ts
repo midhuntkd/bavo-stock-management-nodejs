@@ -2,6 +2,14 @@ import { Document, Model, Types } from 'mongoose';
 
 export interface IStock {
   productName: string;
+  hsnCode: string;
+  barcode: string;
+  salePrice: number;
+  gst: number;
+  mrp: number;
+  actualPrice: number;
+  imageUrl?: string;
+  imageKey?: string;
   sku: string;
   warehouseId: Types.ObjectId;
   quantity: number;

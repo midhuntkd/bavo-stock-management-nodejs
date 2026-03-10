@@ -14,6 +14,10 @@ const envVarsSchema = Joi.object()
     SUPER_ADMIN_NAME: Joi.string().default('Super Admin'),
     SUPER_ADMIN_EMAIL: Joi.string().email().default('superadmin@example.com'),
     SUPER_ADMIN_PASSWORD: Joi.string().min(8).default('Admin@123456'),
+    AWS_REGION: Joi.string().required(),
+    AWS_ACCESS_KEY_ID: Joi.string().required(),
+    AWS_SECRET_ACCESS_KEY: Joi.string().required(),
+    AWS_S3_BUCKET: Joi.string().required(),
   })
   .unknown();
 
@@ -42,6 +46,12 @@ const config = {
     superAdminName: envVars.SUPER_ADMIN_NAME,
     superAdminEmail: envVars.SUPER_ADMIN_EMAIL,
     superAdminPassword: envVars.SUPER_ADMIN_PASSWORD,
+  },
+  aws: {
+    region: envVars.AWS_REGION,
+    accessKeyId: envVars.AWS_ACCESS_KEY_ID,
+    secretAccessKey: envVars.AWS_SECRET_ACCESS_KEY,
+    s3Bucket: envVars.AWS_S3_BUCKET,
   },
 };
 

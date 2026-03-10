@@ -40,6 +40,52 @@
       }
     },
     {
+      "name": "Stocks - Create",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "productName", "value": "Sample Product", "type": "text" },
+            { "key": "hsnCode", "value": "HSN1001", "type": "text" },
+            { "key": "barcode", "value": "8900000000012", "type": "text" },
+            { "key": "salePrice", "value": "120", "type": "text" },
+            { "key": "gst", "value": "18", "type": "text" },
+            { "key": "mrp", "value": "150", "type": "text" },
+            { "key": "actualPrice", "value": "100", "type": "text" },
+            { "key": "sku", "value": "SKU-1001", "type": "text" },
+            { "key": "warehouseId", "value": "{{warehouseId}}", "type": "text" },
+            { "key": "quantity", "value": "100", "type": "text" },
+            { "key": "reservedQuantity", "value": "0", "type": "text" },
+            { "key": "minimumStockLevel", "value": "10", "type": "text" },
+            { "key": "unit", "value": "pcs", "type": "text" },
+            { "key": "status", "value": "active", "type": "text" },
+            { "key": "image", "type": "file", "src": "" }
+          ]
+        },
+        "url": "{{baseUrl}}/stocks"
+      }
+    },
+    {
+      "name": "Stocks - Update",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "salePrice", "value": "125", "type": "text" },
+            { "key": "gst", "value": "18", "type": "text" },
+            { "key": "mrp", "value": "160", "type": "text" },
+            { "key": "actualPrice", "value": "105", "type": "text" },
+            { "key": "image", "type": "file", "src": "" }
+          ]
+        },
+        "url": "{{baseUrl}}/stocks/{{stockId}}"
+      }
+    },
+    {
       "name": "Stocks - Transfer",
       "request": {
         "method": "POST",
@@ -58,6 +104,8 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:4000/api/v1" },
     { "key": "accessToken", "value": "" },
+    { "key": "warehouseId", "value": "" },
+    { "key": "stockId", "value": "" },
     { "key": "sourceStockId", "value": "" },
     { "key": "targetWarehouseId", "value": "" }
   ]

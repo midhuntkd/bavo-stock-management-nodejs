@@ -1,5 +1,13 @@
 export interface CreateStockDTO {
   productName: string;
+  hsnCode: string;
+  barcode: string;
+  salePrice: number;
+  gst: number;
+  mrp: number;
+  actualPrice: number;
+  imageUrl?: string;
+  imageKey?: string;
   sku: string;
   warehouseId: string;
   quantity: number;
@@ -11,6 +19,14 @@ export interface CreateStockDTO {
 
 export interface UpdateStockDTO {
   productName?: string;
+  hsnCode?: string;
+  barcode?: string;
+  salePrice?: number;
+  gst?: number;
+  mrp?: number;
+  actualPrice?: number;
+  imageUrl?: string;
+  imageKey?: string;
   unit?: string;
   minimumStockLevel?: number;
   status?: 'active' | 'inactive';

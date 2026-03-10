@@ -4,6 +4,14 @@ import { IStockDoc, IStockModel } from './stock.interface';
 const stockSchema = new Schema<IStockDoc, IStockModel>(
   {
     productName: { type: String, required: true, trim: true },
+    hsnCode: { type: String, required: true, trim: true },
+    barcode: { type: String, required: true, trim: true },
+    salePrice: { type: Number, required: true, min: 0 },
+    gst: { type: Number, required: true, min: 0 },
+    mrp: { type: Number, required: true, min: 0 },
+    actualPrice: { type: Number, required: true, min: 0 },
+    imageUrl: { type: String, trim: true },
+    imageKey: { type: String, trim: true },
     sku: { type: String, required: true, trim: true, uppercase: true },
     warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true, index: true },
     quantity: { type: Number, required: true, min: 0, default: 0 },
