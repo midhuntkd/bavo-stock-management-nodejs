@@ -14,6 +14,7 @@ const getBearerToken = (req: Request) => {
 
 export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   try {
+    const request = req as any;
     const token = getBearerToken(req);
     if (!token) {
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authorization token missing'));
@@ -29,7 +30,7 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid auth token'));
     }
 
-    req.user = {
+    request.user = {
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -46,11 +47,13 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
 
 export const authorizeRoles = (...allowedRoles: Array<'super_admin' | 'admin'>) =>
   (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user) {
+    const request = req as any;
+
+    if (!request.user) {
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication required'));
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!allowedRoles.includes(request.user.role)) {
       return next(new ApiError(httpStatus.FORBIDDEN, 'Forbidden: insufficient role permission'));
     }
 
@@ -59,15 +62,17 @@ export const authorizeRoles = (...allowedRoles: Array<'super_admin' | 'admin'>) 
 
 export const authorizePermissions = (...requiredPermissions: string[]) =>
   (req: Request, _res: Response, next: NextFunction) => {
-    if (!req.user) {
+    const request = req as any;
+
+    if (!request.user) {
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication required'));
     }
 
-    if (req.user.role === 'super_admin') {
+    if (request.user.role === 'super_admin') {
       return next();
     }
 
-    const userPermissions = req.user.permissions || [];
+    const userPermissions = request.user.permissions || [];
     const hasAllPermissions = requiredPermissions.every((permission) => userPermissions.includes(permission));
 
     if (!hasAllPermissions) {
