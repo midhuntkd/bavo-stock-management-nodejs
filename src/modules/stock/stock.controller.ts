@@ -3,7 +3,7 @@ import { catchAsync, sendSuccess } from '../utils';
 import * as StockService from './stock.service';
 
 export const create: RequestHandler = catchAsync(async (req, res) => {
-  const data = await StockService.createStock(req.body, String(req.user?._id));
+  const data = await StockService.createStock(req.body, String(req.user?._id), req.file);
   sendSuccess(res, 'Stock item created successfully', data, 201);
 });
 
@@ -18,7 +18,7 @@ export const getById: RequestHandler = catchAsync(async (req, res) => {
 });
 
 export const update: RequestHandler = catchAsync(async (req, res) => {
-  const data = await StockService.updateStock(String(req.params.id), req.body, String(req.user?._id));
+  const data = await StockService.updateStock(String(req.params.id), req.body, String(req.user?._id), req.file);
   sendSuccess(res, 'Stock item updated successfully', data);
 });
 

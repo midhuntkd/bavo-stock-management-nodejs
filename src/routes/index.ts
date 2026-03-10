@@ -8,6 +8,7 @@ import stockMovementRoute from './stock-movement.route';
 import dashboardRoute from './dashboard.route';
 import roleRoute from './role.route';
 import docsRoute from './swagger.route';
+import healthRoute from './health.route';
 import config from '../configs/config';
 
 const router: Router = express.Router();
@@ -21,6 +22,7 @@ const defaultIRoute = [
   { path: '/stock-movements', route: stockMovementRoute },
   { path: '/dashboard', route: dashboardRoute },
   { path: '/roles', route: roleRoute },
+  { path: '/health', route: healthRoute },
 ];
 
 const devIRoute = [{ path: '/docs', route: docsRoute }];

@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import ApiError from '../errors/ApiError';
 import * as WarehouseService from '../warehouse/warehouse.service';
 import * as StockMovementService from '../stock-movement/stock-movement.service';
+import { uploadImageToS3 } from '../utils/s3';
 import Stock from './stock.model';
 import { CreateStockDTO, StockAdjustDTO, StockOperationDTO, TransferStockDTO, UpdateStockDTO } from './stock.types';
 
@@ -21,7 +22,7 @@ const ensureWarehouseActive = async (warehouseId: string) => {
   }
 };
 
-export const createStock = async (payload: CreateStockDTO, actorId: string) => {
+export const createStock = async (payload: CreateStockDTO, actorId: string, file?: Express.Multer.File) => {
   await ensureWarehouseActive(payload.warehouseId);
 
   const normalizedSku = payload.sku.toUpperCase();
@@ -33,9 +34,12 @@ export const createStock = async (payload: CreateStockDTO, actorId: string) => {
   const quantity = payload.quantity;
   const reservedQuantity = payload.reservedQuantity || 0;
   const { availableQuantity } = recalculate(quantity, reservedQuantity);
+  const image = file ? await uploadImageToS3(file) : null;
 
   const doc = await Stock.create({
     ...payload,
+    imageUrl: image?.url,
+    imageKey: image?.key,
     sku: normalizedSku,
     quantity,
     reservedQuantity,
@@ -82,8 +86,18 @@ export const getStockById = async (id: string) => {
   return doc;
 };
 
-export const updateStock = async (id: string, payload: UpdateStockDTO, actorId: string) => {
-  const doc = await Stock.findByIdAndUpdate(id, { ...payload, updatedBy: new Types.ObjectId(actorId) }, { new: true, runValidators: true });
+export const updateStock = async (id: string, payload: UpdateStockDTO, actorId: string, file?: Express.Multer.File) => {
+  if (!Object.keys(payload).length && !file) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'No update payload provided');
+  }
+
+  const image = file ? await uploadImageToS3(file) : null;
+  const patch: UpdateStockDTO & { updatedBy: Types.ObjectId } = {
+    ...payload,
+    ...(image ? { imageUrl: image.url, imageKey: image.key } : {}),
+    updatedBy: new Types.ObjectId(actorId),
+  };
+  const doc = await Stock.findByIdAndUpdate(id, patch, { new: true, runValidators: true });
   if (!doc) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
   }
@@ -206,6 +220,14 @@ export const transferStock = async (payload: TransferStockDTO, actorId: string) 
         [
           {
             productName: source.productName,
+            hsnCode: source.hsnCode,
+            barcode: source.barcode,
+            salePrice: source.salePrice,
+            gst: source.gst,
+            mrp: source.mrp,
+            actualPrice: source.actualPrice,
+            imageUrl: source.imageUrl,
+            imageKey: source.imageKey,
             sku: source.sku,
             warehouseId: new Types.ObjectId(payload.targetWarehouseId),
             quantity: 0,
