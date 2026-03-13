@@ -9,7 +9,7 @@ import { httpLogger } from './modules/logger';
 
 const app: Express = express();
 
-const allowedOrigins = config.clientUrl.split(',').map((origin: string) => origin.trim()).filter(Boolean);
+const allowedOrigins = config.corsOrigin.split(',').map((origin: string) => origin.trim()).filter(Boolean);
 
 app.use(helmet());
 app.use(

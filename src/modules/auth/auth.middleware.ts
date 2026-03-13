@@ -1,26 +1,32 @@
 import { NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
 import ApiError from '../errors/ApiError';
+import { RoleService } from '../role';
 import * as TokenService from '../token/token.service';
 import * as UserService from '../user/user.service';
 
 const getBearerToken = (req: Request) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
+  const authHeader = req.headers.authorization || (req.headers['x-access-token'] as string | undefined);
+  if (!authHeader) return null;
+
+  const trimmed = String(authHeader).trim();
+  let token = trimmed;
+
+  if (/^bearer\s+/i.test(trimmed)) {
+    token = trimmed.replace(/^bearer\s+/i, '').trim();
   }
-  return authHeader.slice(7).trim();
+
+  // Some clients accidentally send quoted tokens: Bearer "eyJ..."
+  token = token.replace(/^"+|"+$/g, '');
+  return token || null;
 };
 
 export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   try {
-    const request = req as any;
     const token = getBearerToken(req);
-    if (!token) {
-      return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authorization token missing'));
-    }
+    if (!token) return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authorization token missing'));
 
-    const payload = TokenService.verifyToken(token);
+    const payload = TokenService.verifyAccessToken(token);
     if (payload.type !== 'access') {
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid access token'));
     }
@@ -30,50 +36,54 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid auth token'));
     }
 
-    request.user = {
-      _id: user._id,
+    const rolePermissions = await RoleService.getRolePermissionCodes(String(user.roleId));
+    const effectivePermissions =
+      user.roleCode === 'super_admin' ? ['*'] : [...new Set([...rolePermissions, ...(user.permissions || [])])];
+
+    req.user = {
+      _id: String(user._id),
       name: user.name,
       email: user.email,
-      role: user.role,
-      permissions: user.permissions,
+      roleId: String(user.roleId),
+      roleCode: user.roleCode as any,
+      permissions: user.permissions || [],
+      effectivePermissions,
       isActive: user.isActive,
-    };
+    } as any;
 
     return next();
-  } catch (_error) {
-    return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid auth token'));
+  } catch (error: any) {
+    if (error?.name === 'TokenExpiredError') {
+      return next(new ApiError(httpStatus.UNAUTHORIZED, 'Access token expired'));
+    }
+    if (error?.name === 'JsonWebTokenError') {
+      return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid auth token'));
+    }
+    return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication failed'));
   }
 };
 
-export const authorizeRoles = (...allowedRoles: Array<'super_admin' | 'admin'>) =>
+export const authorizeRoles = (...allowedRoleCodes: string[]) =>
   (req: Request, _res: Response, next: NextFunction) => {
-    const request = req as any;
-
-    if (!request.user) {
+    if (!req.user) {
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication required'));
     }
-
-    if (!allowedRoles.includes(request.user.role)) {
+    if (!allowedRoleCodes.includes(req.user.roleCode)) {
       return next(new ApiError(httpStatus.FORBIDDEN, 'Forbidden: insufficient role permission'));
     }
-
     return next();
   };
 
 export const authorizePermissions = (...requiredPermissions: string[]) =>
   (req: Request, _res: Response, next: NextFunction) => {
-    const request = req as any;
-
-    if (!request.user) {
+    if (!req.user) {
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication required'));
     }
 
-    if (request.user.role === 'super_admin') {
-      return next();
-    }
+    if (req.user.roleCode === 'super_admin') return next();
 
-    const userPermissions = request.user.permissions || [];
-    const hasAllPermissions = requiredPermissions.every((permission) => userPermissions.includes(permission));
+    const effectivePermissions = (req.user as any).effectivePermissions || [];
+    const hasAllPermissions = requiredPermissions.every((permission) => effectivePermissions.includes(permission));
 
     if (!hasAllPermissions) {
       return next(new ApiError(httpStatus.FORBIDDEN, 'Forbidden: permission denied'));
@@ -82,6 +92,6 @@ export const authorizePermissions = (...requiredPermissions: string[]) =>
     return next();
   };
 
-const auth = (...allowedRoles: Array<'super_admin' | 'admin'>) => [authenticate, authorizeRoles(...allowedRoles)];
+const auth = (...allowedRoles: string[]) => [authenticate, authorizeRoles(...allowedRoles)];
 
 export default auth;

@@ -2,37 +2,32 @@ import { RequestHandler } from 'express';
 import { catchAsync, sendSuccess } from '../utils';
 import * as UserService from './user.service';
 
-export const createAdmin: RequestHandler = catchAsync(async (req, res) => {
-  const data = await UserService.createAdmin(req.body, String((req as any).user?._id));
-  sendSuccess(res, 'Admin user created successfully', data, 201);
+export const create: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.createUser(req.body, String(req.user?._id));
+  sendSuccess(res, 'User created successfully', data, 201);
 });
 
-export const listAdmins: RequestHandler = catchAsync(async (req, res) => {
-  const result = await UserService.listAdmins(req.query as Record<string, any>);
-  sendSuccess(res, 'Admin users fetched successfully', result.data, 200, result.meta);
+export const list: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.listUsers(req.query as Record<string, any>);
+  sendSuccess(res, 'Users fetched successfully', data);
 });
 
-export const getAdminById: RequestHandler = catchAsync(async (req, res) => {
-  const data = await UserService.getAdminById(String(req.params.id));
-  sendSuccess(res, 'Admin user fetched successfully', data);
+export const getById: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.getUserById(String(req.params.id));
+  sendSuccess(res, 'User fetched successfully', data);
 });
 
-export const updateAdmin: RequestHandler = catchAsync(async (req, res) => {
-  const data = await UserService.updateAdmin(String(req.params.id), req.body);
-  sendSuccess(res, 'Admin user updated successfully', data);
+export const update: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.updateUser(String(req.params.id), req.body, String(req.user?._id));
+  sendSuccess(res, 'User updated successfully', data);
 });
 
-export const updateAdminStatus: RequestHandler = catchAsync(async (req, res) => {
-  const data = await UserService.updateAdminStatus(String(req.params.id), req.body);
-  sendSuccess(res, 'Admin user status updated successfully', data);
+export const resetPassword: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.resetUserPassword(String(req.params.id), req.body, String(req.user?._id));
+  sendSuccess(res, 'User password reset successfully', data);
 });
 
-export const resetAdminPassword: RequestHandler = catchAsync(async (req, res) => {
-  await UserService.resetAdminPassword(String(req.params.id), req.body);
-  sendSuccess(res, 'Admin user password reset successfully');
-});
-
-export const updateAdminPermissions: RequestHandler = catchAsync(async (req, res) => {
-  const data = await UserService.updateAdminPermissions(String(req.params.id), req.body.permissions);
-  sendSuccess(res, 'Admin user permissions updated successfully', data);
+export const changeMyPassword: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.changeOwnPassword(String(req.user?._id), req.body);
+  sendSuccess(res, 'Password changed successfully', data);
 });

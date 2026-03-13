@@ -1,0 +1,77 @@
+export interface PermissionSeed {
+  name: string;
+  code: string;
+  module: string;
+  description: string;
+}
+
+export const PERMISSION_SEEDS: PermissionSeed[] = [
+  { name: 'Dashboard View', code: 'dashboard.view', module: 'dashboard', description: 'View dashboard summary' },
+  { name: 'User View', code: 'user.view', module: 'user', description: 'View users' },
+  { name: 'User Create', code: 'user.create', module: 'user', description: 'Create users' },
+  { name: 'User Update', code: 'user.update', module: 'user', description: 'Update users' },
+  { name: 'User Delete', code: 'user.delete', module: 'user', description: 'Deactivate users' },
+  { name: 'Role View', code: 'role.view', module: 'role', description: 'View roles' },
+  { name: 'Role Create', code: 'role.create', module: 'role', description: 'Create roles' },
+  { name: 'Role Update', code: 'role.update', module: 'role', description: 'Update roles' },
+  { name: 'Role Delete', code: 'role.delete', module: 'role', description: 'Deactivate roles' },
+  { name: 'Permission View', code: 'permission.view', module: 'permission', description: 'View permissions' },
+  { name: 'Permission Assign', code: 'permission.assign', module: 'permission', description: 'Assign permissions' },
+
+  { name: 'Warehouse View', code: 'warehouse.view', module: 'warehouse', description: 'View warehouses' },
+  { name: 'Warehouse Create', code: 'warehouse.create', module: 'warehouse', description: 'Create warehouses' },
+  { name: 'Warehouse Update', code: 'warehouse.update', module: 'warehouse', description: 'Update warehouses' },
+  { name: 'Warehouse Delete', code: 'warehouse.delete', module: 'warehouse', description: 'Deactivate warehouses' },
+
+  { name: 'Warehouse Location View', code: 'warehouse-location.view', module: 'warehouse-location', description: 'View warehouse locations' },
+  { name: 'Warehouse Location Create', code: 'warehouse-location.create', module: 'warehouse-location', description: 'Create warehouse locations' },
+  { name: 'Warehouse Location Update', code: 'warehouse-location.update', module: 'warehouse-location', description: 'Update warehouse locations' },
+  { name: 'Warehouse Location Delete', code: 'warehouse-location.delete', module: 'warehouse-location', description: 'Deactivate warehouse locations' },
+
+  { name: 'Supplier View', code: 'supplier.view', module: 'supplier', description: 'View suppliers' },
+  { name: 'Supplier Create', code: 'supplier.create', module: 'supplier', description: 'Create suppliers' },
+  { name: 'Supplier Update', code: 'supplier.update', module: 'supplier', description: 'Update suppliers' },
+  { name: 'Supplier Delete', code: 'supplier.delete', module: 'supplier', description: 'Deactivate suppliers' },
+
+  { name: 'Brand View', code: 'brand.view', module: 'brand', description: 'View brands' },
+  { name: 'Brand Create', code: 'brand.create', module: 'brand', description: 'Create brands' },
+  { name: 'Brand Update', code: 'brand.update', module: 'brand', description: 'Update brands' },
+  { name: 'Brand Status', code: 'brand.status', module: 'brand', description: 'Activate/deactivate brands' },
+
+  { name: 'Product View', code: 'product.view', module: 'product', description: 'View products' },
+  { name: 'Product Create', code: 'product.create', module: 'product', description: 'Create products' },
+  { name: 'Product Update', code: 'product.update', module: 'product', description: 'Update products' },
+  { name: 'Product Delete', code: 'product.delete', module: 'product', description: 'Deactivate products' },
+
+  { name: 'Stock View', code: 'stock.view', module: 'stock', description: 'View stock summary' },
+  { name: 'Stock Create', code: 'stock.create', module: 'stock', description: 'Create stock summary record' },
+  { name: 'Stock Update', code: 'stock.update', module: 'stock', description: 'Update stock summary' },
+  { name: 'Stock In', code: 'stock.in', module: 'stock', description: 'Stock in operations' },
+  { name: 'Stock Out', code: 'stock.out', module: 'stock', description: 'Stock out operations' },
+  { name: 'Stock Reserve', code: 'stock.reserve', module: 'stock', description: 'Reserve stock' },
+  { name: 'Stock Release', code: 'stock.release', module: 'stock', description: 'Release stock reservation' },
+  { name: 'Stock Adjust', code: 'stock.adjust', module: 'stock', description: 'Adjust stock' },
+  { name: 'Stock Transfer', code: 'stock.transfer', module: 'stock', description: 'Transfer stock between warehouses' },
+
+  { name: 'Stock Movement View', code: 'stock-movement.view', module: 'stock-movement', description: 'View stock movement ledger' },
+  { name: 'Stock Batch View', code: 'stock-batch.view', module: 'stock-batch', description: 'View stock batches' },
+
+  { name: 'Purchase Order View', code: 'purchase-order.view', module: 'purchase-order', description: 'View purchase orders' },
+  { name: 'Purchase Order Create', code: 'purchase-order.create', module: 'purchase-order', description: 'Create purchase orders' },
+  { name: 'Purchase Order Update', code: 'purchase-order.update', module: 'purchase-order', description: 'Update purchase orders' },
+  { name: 'Purchase Order Approve', code: 'purchase-order.approve', module: 'purchase-order', description: 'Approve purchase orders' },
+
+  { name: 'GRN View', code: 'grn.view', module: 'grn', description: 'View GRN' },
+  { name: 'GRN Create', code: 'grn.create', module: 'grn', description: 'Create GRN' },
+  { name: 'GRN Update', code: 'grn.update', module: 'grn', description: 'Update/receive GRN' },
+
+  { name: 'Sale Invoice View', code: 'sale-invoice.view', module: 'sale-invoice', description: 'View sale invoices' },
+  { name: 'Sale Invoice Create', code: 'sale-invoice.create', module: 'sale-invoice', description: 'Create sale invoices' },
+  { name: 'Sale Invoice Cancel', code: 'sale-invoice.cancel', module: 'sale-invoice', description: 'Cancel sale invoices' },
+
+  { name: 'Stock Adjustment View', code: 'stock-adjustment.view', module: 'stock-adjustment', description: 'View stock adjustments' },
+  { name: 'Stock Adjustment Create', code: 'stock-adjustment.create', module: 'stock-adjustment', description: 'Create stock adjustments' },
+  { name: 'Stock Adjustment Approve', code: 'stock-adjustment.approve', module: 'stock-adjustment', description: 'Approve stock adjustments' },
+];
+
+export const PERMISSION_CODES = PERMISSION_SEEDS.map((permission) => permission.code);

@@ -1,50 +1,21 @@
 export interface CreateStockDTO {
-  productName: string;
-  hsnCode: string;
-  barcode: string;
-  salePrice: number;
-  gst: number;
-  mrp: number;
-  actualPrice: number;
-  imageUrl?: string;
-  imageKey?: string;
-  sku: string;
+  productId: string;
   warehouseId: string;
-  quantity: number;
+  locationId?: string;
+  quantity?: number;
   reservedQuantity?: number;
-  minimumStockLevel?: number;
-  unit: string;
-  status?: 'active' | 'inactive';
+  damagedQuantity?: number;
+  minStockLevel?: number;
+  reorderLevel?: number;
+  maxStockLevel?: number;
+  lastPurchasePrice?: number;
+  weightedAverageCost?: number;
 }
 
-export interface UpdateStockDTO {
-  productName?: string;
-  hsnCode?: string;
-  barcode?: string;
-  salePrice?: number;
-  gst?: number;
-  mrp?: number;
-  actualPrice?: number;
-  imageUrl?: string;
-  imageKey?: string;
-  unit?: string;
-  minimumStockLevel?: number;
-  status?: 'active' | 'inactive';
-}
-
-export interface StockOperationDTO {
-  quantity: number;
-  referenceType?: string;
-  referenceId?: string;
-  note?: string;
-}
-
-export interface StockAdjustDTO extends StockOperationDTO {
-  quantity: number;
-}
-
-export interface TransferStockDTO extends StockOperationDTO {
-  sourceStockId: string;
-  targetWarehouseId: string;
-  quantity: number;
+export interface StockDeltaInput {
+  quantityDelta?: number;
+  reservedDelta?: number;
+  damagedDelta?: number;
+  lastPurchasePrice?: number;
+  weightedAverageCost?: number;
 }

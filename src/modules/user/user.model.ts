@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { roles } from '../../configs/roles';
+import config from '../../configs/config';
 import { IUserDoc, IUserModel } from './user.interface';
 
 const userSchema = new Schema<IUserDoc, IUserModel>(
@@ -9,18 +9,22 @@ const userSchema = new Schema<IUserDoc, IUserModel>(
     email: { type: String, required: true, trim: true, lowercase: true, unique: true },
     password: { type: String, required: true, minlength: 8 },
     phone: { type: String, trim: true },
-    role: { type: String, enum: roles, required: true, default: 'admin' },
+    roleId: { type: Schema.Types.ObjectId, ref: 'Role', required: true, index: true },
+    roleCode: { type: String, required: true, lowercase: true, index: true },
     permissions: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true, versionKey: false }
 );
 
+userSchema.index({ roleCode: 1, isActive: 1 });
+
 userSchema.pre('save', async function save(next) {
   if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, config.bcryptSaltRounds);
   }
   next();
 });

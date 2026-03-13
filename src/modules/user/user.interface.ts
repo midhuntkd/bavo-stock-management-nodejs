@@ -1,16 +1,17 @@
 import { Document, Model, Types } from 'mongoose';
-import { Role } from '../../configs/roles';
 
 export interface IUser {
   name: string;
   email: string;
   password: string;
   phone?: string;
-  role: Role;
+  roleId: Types.ObjectId;
+  roleCode: string;
   permissions: string[];
   isActive: boolean;
   lastLoginAt?: Date;
   createdBy?: Types.ObjectId;
+  updatedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }

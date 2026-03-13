@@ -1,9 +1,10 @@
-import { Document, Model } from 'mongoose';
+import { Document, Model, Types } from 'mongoose';
 
 export interface IPermission {
-  key: string;
-  description: string;
-  group: string;
+  name: string;
+  code: string;
+  module: string;
+  description?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -11,4 +12,6 @@ export interface IPermission {
 
 export interface IPermissionDoc extends IPermission, Document {}
 
-export interface IPermissionModel extends Model<IPermissionDoc> {}
+export interface IPermissionModel extends Model<IPermissionDoc> {
+  isCodeTaken(code: string, excludeId?: string): Promise<boolean>;
+}

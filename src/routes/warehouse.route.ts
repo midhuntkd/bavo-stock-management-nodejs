@@ -4,320 +4,148 @@ import { WarehouseController, WarehouseValidator } from '../modules/warehouse';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin'));
+router.use(authenticate, authorizeRoles('super_admin', 'admin', 'staff'));
 
 /**
  * @openapi
- * components:
- *   schemas:
- *     WarehouseItem:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *           example: "67d12f10f3f7fdb2e0b18a20"
- *         name:
- *           type: string
- *           example: "Main Warehouse"
- *         code:
- *           type: string
- *           example: "WH001"
- *         address:
- *           type: string
- *           example: "Address Line"
- *         city:
- *           type: string
- *           example: "Kochi"
- *         state:
- *           type: string
- *           example: "Kerala"
- *         country:
- *           type: string
- *           example: "India"
- *         pincode:
- *           type: string
- *           example: "682001"
- *         contactName:
- *           type: string
- *           nullable: true
- *           example: "Store Manager"
- *         contactPhone:
- *           type: string
- *           nullable: true
- *           example: "9876543210"
- *         status:
- *           type: string
- *           enum: [active, inactive]
- *           example: "active"
- *         isDeleted:
- *           type: boolean
- *           example: false
- *         createdAt:
- *           type: string
- *           format: date-time
- *           example: "2026-03-10T09:00:00.000Z"
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           example: "2026-03-10T09:00:00.000Z"
- *
  * /warehouses:
  *   post:
  *     tags: [Warehouses]
  *     summary: Create warehouse
+ *     security: [{ bearerAuth: [] }]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             required: [name, code, address, city, state, country, pincode]
- *             properties:
- *               name:
- *                 type: string
- *                 description: Warehouse name.
- *                 example: "Main Warehouse"
- *               code:
- *                 type: string
- *                 description: Unique warehouse code.
- *                 example: "WH001"
- *               address:
- *                 type: string
- *                 description: Address line.
- *                 example: "Address Line"
- *               city:
- *                 type: string
- *                 description: City.
- *                 example: "Kochi"
- *               state:
- *                 type: string
- *                 description: State.
- *                 example: "Kerala"
- *               country:
- *                 type: string
- *                 description: Country.
- *                 example: "India"
- *               pincode:
- *                 type: string
- *                 description: Postal code.
- *                 example: "682001"
- *               contactName:
- *                 type: string
- *                 nullable: true
- *                 description: Contact person name.
- *                 example: "Store Manager"
- *               contactPhone:
- *                 type: string
- *                 nullable: true
- *                 description: Contact person phone.
- *                 example: "9876543210"
- *               status:
- *                 type: string
- *                 enum: [active, inactive]
- *                 description: Warehouse status.
- *                 example: "active"
- *     security:
- *       - bearerAuth: []
+ *           example:
+ *             name: "Main Dark Store"
+ *             code: "WH-MAIN-01"
+ *             type: "darkStore"
+ *             addressLine1: "MG Road"
+ *             city: "Kochi"
+ *             state: "Kerala"
+ *             country: "India"
+ *             pincode: "682001"
+ *             isActive: true
  *     responses:
  *       201:
- *         description: Warehouse created successfully.
- *         content:
- *           application/json:
- *             example:
- *               success: true
- *               message: "Warehouse created successfully"
- *               data:
- *                 _id: "67d12f10f3f7fdb2e0b18a20"
- *                 name: "Main Warehouse"
- *                 code: "WH001"
- *                 address: "Address Line"
- *                 city: "Kochi"
- *                 state: "Kerala"
- *                 country: "India"
- *                 pincode: "682001"
- *                 contactName: "Store Manager"
- *                 contactPhone: "9876543210"
- *                 status: "active"
- *                 isDeleted: false
- *       400:
- *         description: Validation failure or duplicate warehouse code.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (missing permission).
+ *         description: Warehouse created
  */
 router.post('/', authorizePermissions('warehouse.create'), WarehouseValidator.create, WarehouseController.create);
+
 /**
  * @openapi
  * /warehouses:
  *   get:
  *     tags: [Warehouses]
  *     summary: List warehouses
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: query
  *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number.
+ *         schema: { type: integer, example: 1 }
  *       - in: query
  *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Records per page.
+ *         schema: { type: integer, example: 20 }
  *       - in: query
  *         name: search
- *         schema:
- *           type: string
- *         description: Search by name/code/city.
+ *         schema: { type: string }
  *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, inactive]
- *         description: Filter by warehouse status.
- *     security:
- *       - bearerAuth: []
+ *         name: type
+ *         schema: { type: string, enum: [darkStore, mainWarehouse, miniWarehouse, store] }
+ *       - in: query
+ *         name: isActive
+ *         schema: { type: string, enum: ["true", "false"] }
  *     responses:
  *       200:
- *         description: Warehouses fetched successfully.
- *       400:
- *         description: Invalid query parameters.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (missing permission).
+ *         description: Warehouses fetched
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: "Warehouses fetched successfully"
+ *               data:
+ *                 items: []
+ *                 pagination:
+ *                   page: 1
+ *                   limit: 20
+ *                   totalItems: 0
+ *                   totalPages: 1
  */
 router.get('/', authorizePermissions('warehouse.view'), WarehouseValidator.list, WarehouseController.list);
+
 /**
  * @openapi
  * /warehouses/{id}:
  *   get:
  *     tags: [Warehouses]
- *     summary: Get warehouse by id
+ *     summary: Warehouse detail
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: Warehouse id.
- *         example: "67d12f10f3f7fdb2e0b18a20"
- *     security:
- *       - bearerAuth: []
+ *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Warehouse fetched successfully.
- *       400:
- *         description: Invalid id format.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (missing permission).
- *       404:
- *         description: Warehouse not found.
+ *         description: Warehouse fetched
  */
 router.get('/:id', authorizePermissions('warehouse.view'), WarehouseValidator.idParam, WarehouseController.getById);
+
 /**
  * @openapi
  * /warehouses/{id}:
  *   patch:
  *     tags: [Warehouses]
  *     summary: Update warehouse
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: Warehouse id.
+ *         schema: { type: string }
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: Updated warehouse name.
- *               code:
- *                 type: string
- *                 description: Updated unique warehouse code.
- *               address:
- *                 type: string
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               country:
- *                 type: string
- *               pincode:
- *                 type: string
- *               contactName:
- *                 type: string
- *                 nullable: true
- *               contactPhone:
- *                 type: string
- *                 nullable: true
- *               status:
- *                 type: string
- *                 enum: [active, inactive]
- *     security:
- *       - bearerAuth: []
+ *           example:
+ *             contactName: "Manager Name"
+ *             openingTime: "08:00"
+ *             closingTime: "22:00"
  *     responses:
  *       200:
- *         description: Warehouse updated successfully.
- *       400:
- *         description: Validation failure.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (missing permission).
- *       404:
- *         description: Warehouse not found.
+ *         description: Warehouse updated
  */
 router.patch('/:id', authorizePermissions('warehouse.update'), WarehouseValidator.idParam, WarehouseValidator.update, WarehouseController.update);
+
 /**
  * @openapi
- * /warehouses/{id}/deactivate:
+ * /warehouses/{id}/status:
  *   patch:
  *     tags: [Warehouses]
- *     summary: Deactivate warehouse
+ *     summary: Activate/deactivate warehouse
+ *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: Warehouse id.
- *     security:
- *       - bearerAuth: []
+ *         schema: { type: string }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           example:
+ *             isActive: false
  *     responses:
  *       200:
- *         description: Warehouse deactivated successfully.
- *         content:
- *           application/json:
- *             example:
- *               success: true
- *               message: "Warehouse deactivated successfully"
- *               data:
- *                 _id: "67d12f10f3f7fdb2e0b18a20"
- *                 status: "inactive"
- *                 isDeleted: true
- *       400:
- *         description: Invalid id format.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (missing permission).
- *       404:
- *         description: Warehouse not found.
+ *         description: Warehouse status updated
  */
-router.patch('/:id/deactivate', authorizePermissions('warehouse.delete'), WarehouseValidator.idParam, WarehouseController.deactivate);
+router.patch(
+  '/:id/status',
+  authorizePermissions('warehouse.delete'),
+  WarehouseValidator.idParam,
+  WarehouseValidator.setActiveState,
+  WarehouseController.setActiveState
+);
 
 export default router;

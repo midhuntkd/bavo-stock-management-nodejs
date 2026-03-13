@@ -1,38 +1,26 @@
-import { Role } from '../../configs/roles';
-
-export interface CreateAdminDTO {
+export interface CreateUserDTO {
   name: string;
   email: string;
   password: string;
   phone?: string;
+  roleCode: string;
   permissions?: string[];
 }
 
-export interface UpdateAdminDTO {
+export interface UpdateUserDTO {
   name?: string;
   email?: string;
   phone?: string;
+  roleCode?: string;
   permissions?: string[];
+  isActive?: boolean;
 }
 
-export interface UpdateAdminStatusDTO {
-  isActive: boolean;
-}
-
-export interface ResetAdminPasswordDTO {
+export interface ResetPasswordDTO {
   password: string;
 }
 
-export interface SafeUser {
-  _id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: Role;
-  permissions: string[];
-  isActive: boolean;
-  lastLoginAt?: Date;
-  createdBy?: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface ChangePasswordDTO {
+  currentPassword: string;
+  newPassword: string;
 }
