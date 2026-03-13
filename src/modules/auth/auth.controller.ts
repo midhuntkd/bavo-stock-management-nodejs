@@ -18,6 +18,6 @@ export const logout: RequestHandler = catchAsync(async (req, res) => {
 });
 
 export const me: RequestHandler = catchAsync(async (req, res) => {
-  const data = await AuthService.getMe(String((req as any).user?._id));
+  const data = await AuthService.getMe(String(req.user?._id));
   sendSuccess(res, 'Profile fetched successfully', data);
 });

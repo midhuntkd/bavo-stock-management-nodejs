@@ -1,29 +1,24 @@
 import { Document, Model, Types } from 'mongoose';
 
+export type StockStatus = 'inStock' | 'lowStock' | 'outOfStock' | 'inactive';
+
 export interface IStock {
-  productName: string;
-  hsnCode: string;
-  barcode: string;
-  salePrice: number;
-  gst: number;
-  mrp: number;
-  actualPrice: number;
-  imageUrl?: string;
-  imageKey?: string;
-  sku: string;
+  productId: Types.ObjectId;
   warehouseId: Types.ObjectId;
+  locationId?: Types.ObjectId;
   quantity: number;
   reservedQuantity: number;
+  damagedQuantity: number;
   availableQuantity: number;
-  minimumStockLevel: number;
-  unit: string;
-  status: 'active' | 'inactive';
-  createdBy?: Types.ObjectId;
-  updatedBy?: Types.ObjectId;
+  minStockLevel: number;
+  reorderLevel: number;
+  maxStockLevel: number;
+  lastPurchasePrice: number;
+  weightedAverageCost: number;
+  status: StockStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IStockDoc extends IStock, Document {}
-
 export interface IStockModel extends Model<IStockDoc> {}

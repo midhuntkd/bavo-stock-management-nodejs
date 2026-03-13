@@ -7,6 +7,17 @@ import stockRoute from './stock.route';
 import stockMovementRoute from './stock-movement.route';
 import dashboardRoute from './dashboard.route';
 import roleRoute from './role.route';
+import brandRoute from './brand.route';
+import warehouseLocationRoute from './warehouse-location.route';
+import supplierRoute from './supplier.route';
+import productRoute from './product.route';
+import stockBatchRoute from './stock-batch.route';
+import stockReservationRoute from './stock-reservation.route';
+import purchaseOrderRoute from './purchase-order.route';
+import goodsReceiptNoteRoute from './goods-receipt-note.route';
+import stockTransferRoute from './stock-transfer.route';
+import saleInvoiceRoute from './sale-invoice.route';
+import stockAdjustmentRoute from './stock-adjustment.route';
 import docsRoute from './swagger.route';
 import healthRoute from './health.route';
 import config from '../configs/config';
@@ -22,6 +33,17 @@ const defaultIRoute = [
   { path: '/stock-movements', route: stockMovementRoute },
   { path: '/dashboard', route: dashboardRoute },
   { path: '/roles', route: roleRoute },
+  { path: '/brands', route: brandRoute },
+  { path: '/warehouse-locations', route: warehouseLocationRoute },
+  { path: '/suppliers', route: supplierRoute },
+  { path: '/products', route: productRoute },
+  { path: '/stock-batches', route: stockBatchRoute },
+  { path: '/stock-reservations', route: stockReservationRoute },
+  { path: '/purchase-orders', route: purchaseOrderRoute },
+  { path: '/grn', route: goodsReceiptNoteRoute },
+  { path: '/stock-transfers', route: stockTransferRoute },
+  { path: '/sale-invoices', route: saleInvoiceRoute },
+  { path: '/stock-adjustments', route: stockAdjustmentRoute },
   { path: '/health', route: healthRoute },
 ];
 

@@ -1,350 +1,144 @@
-import mongoose, { Types } from 'mongoose';
 import httpStatus from 'http-status';
+import { ClientSession, Types } from 'mongoose';
+import config from '../../configs/config';
 import ApiError from '../errors/ApiError';
-import * as WarehouseService from '../warehouse/warehouse.service';
-import * as StockMovementService from '../stock-movement/stock-movement.service';
-import { uploadImageToS3 } from '../utils/s3';
+import { getPagination } from '../utils';
 import Stock from './stock.model';
-import { CreateStockDTO, StockAdjustDTO, StockOperationDTO, TransferStockDTO, UpdateStockDTO } from './stock.types';
+import { CreateStockDTO, StockDeltaInput } from './stock.types';
 
-const recalculate = (quantity: number, reservedQuantity: number) => {
-  const availableQuantity = quantity - reservedQuantity;
-  if (quantity < 0 || reservedQuantity < 0 || availableQuantity < 0) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid stock quantities');
+export const recalculateAvailableQuantity = (quantity: number, reservedQuantity: number, damagedQuantity: number) => {
+  const availableQuantity = quantity - reservedQuantity - damagedQuantity;
+  if (availableQuantity < 0 && !config.allowNegativeStock) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Available stock cannot be negative');
   }
-  return { availableQuantity };
+  return availableQuantity;
 };
 
-const ensureWarehouseActive = async (warehouseId: string) => {
-  const exists = await WarehouseService.existsWarehouse(warehouseId);
-  if (!exists) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid or inactive warehouse');
-  }
+const computeStatus = (availableQuantity: number, minStockLevel: number, forceInactive = false) => {
+  if (forceInactive) return 'inactive' as const;
+  if (availableQuantity <= 0) return 'outOfStock' as const;
+  if (availableQuantity <= minStockLevel) return 'lowStock' as const;
+  return 'inStock' as const;
 };
 
-export const createStock = async (payload: CreateStockDTO, actorId: string, file?: Express.Multer.File) => {
-  await ensureWarehouseActive(payload.warehouseId);
+export const createStockRecord = async (payload: CreateStockDTO) => {
+  const exists = await Stock.findOne({
+    productId: payload.productId,
+    warehouseId: payload.warehouseId,
+    locationId: payload.locationId || null,
+  });
+  if (exists) throw new ApiError(httpStatus.BAD_REQUEST, 'Stock record already exists for this product/warehouse/location');
 
-  const normalizedSku = payload.sku.toUpperCase();
-  const exists = await Stock.findOne({ warehouseId: payload.warehouseId, sku: normalizedSku });
-  if (exists) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Stock item with this SKU already exists in warehouse');
-  }
-
-  const quantity = payload.quantity;
+  const quantity = payload.quantity || 0;
   const reservedQuantity = payload.reservedQuantity || 0;
-  const { availableQuantity } = recalculate(quantity, reservedQuantity);
-  const image = file ? await uploadImageToS3(file) : null;
+  const damagedQuantity = payload.damagedQuantity || 0;
+  const availableQuantity = recalculateAvailableQuantity(quantity, reservedQuantity, damagedQuantity);
 
-  const doc = await Stock.create({
-    ...payload,
-    imageUrl: image?.url,
-    imageKey: image?.key,
-    sku: normalizedSku,
+  return Stock.create({
+    productId: new Types.ObjectId(payload.productId),
+    warehouseId: new Types.ObjectId(payload.warehouseId),
+    locationId: payload.locationId ? new Types.ObjectId(payload.locationId) : null,
     quantity,
     reservedQuantity,
+    damagedQuantity,
     availableQuantity,
-    minimumStockLevel: payload.minimumStockLevel || 0,
-    createdBy: new Types.ObjectId(actorId),
-    updatedBy: new Types.ObjectId(actorId),
+    minStockLevel: payload.minStockLevel || 0,
+    reorderLevel: payload.reorderLevel || 0,
+    maxStockLevel: payload.maxStockLevel || 0,
+    lastPurchasePrice: payload.lastPurchasePrice || 0,
+    weightedAverageCost: payload.weightedAverageCost || 0,
+    status: computeStatus(availableQuantity, payload.minStockLevel || 0),
   });
+};
 
-  return doc;
+export const upsertStockSummary = async (
+  keys: { productId: string; warehouseId: string; locationId?: string | null },
+  initial: Partial<CreateStockDTO> = {},
+  session?: ClientSession
+) => {
+  let stock = await Stock.findOne({ productId: keys.productId, warehouseId: keys.warehouseId, locationId: keys.locationId || null }).session(
+    session || null
+  );
+  if (!stock) {
+    stock = await Stock.create(
+      [
+        {
+          productId: new Types.ObjectId(keys.productId),
+          warehouseId: new Types.ObjectId(keys.warehouseId),
+          locationId: keys.locationId ? new Types.ObjectId(keys.locationId) : null,
+          quantity: initial.quantity || 0,
+          reservedQuantity: initial.reservedQuantity || 0,
+          damagedQuantity: initial.damagedQuantity || 0,
+          availableQuantity: recalculateAvailableQuantity(
+            initial.quantity || 0,
+            initial.reservedQuantity || 0,
+            initial.damagedQuantity || 0
+          ),
+          minStockLevel: initial.minStockLevel || 0,
+          reorderLevel: initial.reorderLevel || 0,
+          maxStockLevel: initial.maxStockLevel || 0,
+          lastPurchasePrice: initial.lastPurchasePrice || 0,
+          weightedAverageCost: initial.weightedAverageCost || 0,
+          status: computeStatus(initial.quantity || 0, initial.minStockLevel || 0),
+        },
+      ],
+      session ? { session } : undefined
+    ).then((rows) => rows[0]);
+  }
+  return stock;
+};
+
+export const applyStockDelta = async (stockId: string, delta: StockDeltaInput, session?: ClientSession) => {
+  const stock = await Stock.findById(stockId).session(session || null);
+  if (!stock) throw new ApiError(httpStatus.NOT_FOUND, 'Stock not found');
+
+  stock.quantity += delta.quantityDelta || 0;
+  stock.reservedQuantity += delta.reservedDelta || 0;
+  stock.damagedQuantity += delta.damagedDelta || 0;
+
+  if (stock.quantity < 0 && !config.allowNegativeStock) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Stock quantity cannot be negative');
+  }
+  if (stock.reservedQuantity < 0) throw new ApiError(httpStatus.BAD_REQUEST, 'Reserved quantity cannot be negative');
+  if (stock.damagedQuantity < 0) throw new ApiError(httpStatus.BAD_REQUEST, 'Damaged quantity cannot be negative');
+
+  stock.availableQuantity = recalculateAvailableQuantity(stock.quantity, stock.reservedQuantity, stock.damagedQuantity);
+  if (typeof delta.lastPurchasePrice !== 'undefined') stock.lastPurchasePrice = delta.lastPurchasePrice;
+  if (typeof delta.weightedAverageCost !== 'undefined') stock.weightedAverageCost = delta.weightedAverageCost;
+
+  stock.status = computeStatus(stock.availableQuantity, stock.minStockLevel, stock.status === 'inactive');
+  await stock.save({ session });
+  return stock;
 };
 
 export const listStocks = async (query: Record<string, any>) => {
-  const page = Math.max(Number(query.page) || 1, 1);
-  const limit = Math.max(1, Math.min(Number(query.limit) || 20, 100));
-  const skip = (page - 1) * limit;
-
+  const { page, limit, skip } = getPagination(query);
   const filter: any = {};
   if (query.warehouseId) filter.warehouseId = query.warehouseId;
+  if (query.productId) filter.productId = query.productId;
+  if (query.locationId) filter.locationId = query.locationId;
   if (query.status) filter.status = query.status;
-  if (query.lowStock === 'true') {
-    filter.$expr = { $lte: ['$availableQuantity', '$minimumStockLevel'] };
-  }
-  if (query.search) {
-    filter.$or = [
-      { productName: { $regex: query.search, $options: 'i' } },
-      { sku: { $regex: query.search, $options: 'i' } },
-    ];
-  }
+  if (query.lowStock === 'true') filter.$expr = { $lte: ['$availableQuantity', '$minStockLevel'] };
 
-  const [rows, total] = await Promise.all([
-    Stock.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+  const [items, totalItems] = await Promise.all([
+    Stock.find(filter).sort({ updatedAt: -1 }).skip(skip).limit(limit),
     Stock.countDocuments(filter),
   ]);
 
-  return { data: rows, meta: { page, limit, total } };
+  return {
+    items,
+    pagination: { page, limit, totalItems, totalPages: Math.ceil(totalItems / limit) || 1 },
+  };
 };
 
 export const getStockById = async (id: string) => {
-  const doc = await Stock.findById(id);
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-  return doc;
+  const stock = await Stock.findById(id);
+  if (!stock) throw new ApiError(httpStatus.NOT_FOUND, 'Stock not found');
+  return stock;
 };
 
-export const updateStock = async (id: string, payload: UpdateStockDTO, actorId: string, file?: Express.Multer.File) => {
-  if (!Object.keys(payload).length && !file) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'No update payload provided');
-  }
-
-  const image = file ? await uploadImageToS3(file) : null;
-  const patch: UpdateStockDTO & { updatedBy: Types.ObjectId } = {
-    ...payload,
-    ...(image ? { imageUrl: image.url, imageKey: image.key } : {}),
-    updatedBy: new Types.ObjectId(actorId),
-  };
-  const doc = await Stock.findByIdAndUpdate(id, patch, { new: true, runValidators: true });
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-  return doc;
-};
-
-export const stockIn = async (id: string, payload: StockOperationDTO, actorId: string) => {
-  const doc = await Stock.findById(id);
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-
-  doc.quantity += payload.quantity;
-  const { availableQuantity } = recalculate(doc.quantity, doc.reservedQuantity);
-  doc.availableQuantity = availableQuantity;
-  doc.updatedBy = new Types.ObjectId(actorId);
-  await doc.save();
-
-  await StockMovementService.createMovement({
-    stockId: String(doc._id),
-    warehouseId: String(doc.warehouseId),
-    type: 'IN',
-    quantity: payload.quantity,
-    referenceType: payload.referenceType,
-    referenceId: payload.referenceId,
-    note: payload.note,
-    createdBy: actorId,
-  });
-
-  return doc;
-};
-
-export const stockOut = async (id: string, payload: StockOperationDTO, actorId: string) => {
-  const doc = await Stock.findById(id);
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-
-  if (doc.availableQuantity < payload.quantity) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient available quantity');
-  }
-
-  doc.quantity -= payload.quantity;
-  const { availableQuantity } = recalculate(doc.quantity, doc.reservedQuantity);
-  doc.availableQuantity = availableQuantity;
-  doc.updatedBy = new Types.ObjectId(actorId);
-  await doc.save();
-
-  await StockMovementService.createMovement({
-    stockId: String(doc._id),
-    warehouseId: String(doc.warehouseId),
-    type: 'OUT',
-    quantity: payload.quantity,
-    referenceType: payload.referenceType,
-    referenceId: payload.referenceId,
-    note: payload.note,
-    createdBy: actorId,
-  });
-
-  return doc;
-};
-
-export const stockAdjust = async (id: string, payload: StockAdjustDTO, actorId: string) => {
-  const doc = await Stock.findById(id);
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-
-  const nextQuantity = doc.quantity + payload.quantity;
-  const { availableQuantity } = recalculate(nextQuantity, doc.reservedQuantity);
-
-  doc.quantity = nextQuantity;
-  doc.availableQuantity = availableQuantity;
-  doc.updatedBy = new Types.ObjectId(actorId);
-  await doc.save();
-
-  await StockMovementService.createMovement({
-    stockId: String(doc._id),
-    warehouseId: String(doc.warehouseId),
-    type: 'ADJUSTMENT',
-    quantity: payload.quantity,
-    referenceType: payload.referenceType,
-    referenceId: payload.referenceId,
-    note: payload.note,
-    createdBy: actorId,
-  });
-
-  return doc;
-};
-
-export const transferStock = async (payload: TransferStockDTO, actorId: string) => {
-  await ensureWarehouseActive(payload.targetWarehouseId);
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const source = await Stock.findById(payload.sourceStockId).session(session);
-    if (!source) {
-      throw new ApiError(httpStatus.NOT_FOUND, 'Source stock item not found');
-    }
-
-    if (String(source.warehouseId) === payload.targetWarehouseId) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Source and target warehouse cannot be same');
-    }
-
-    if (source.availableQuantity < payload.quantity) {
-      throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient available quantity in source warehouse');
-    }
-
-    source.quantity -= payload.quantity;
-    source.availableQuantity = recalculate(source.quantity, source.reservedQuantity).availableQuantity;
-    source.updatedBy = new Types.ObjectId(actorId);
-    await source.save({ session });
-
-    let target = await Stock.findOne({ warehouseId: payload.targetWarehouseId, sku: source.sku }).session(session);
-
-    if (!target) {
-      target = await Stock.create(
-        [
-          {
-            productName: source.productName,
-            hsnCode: source.hsnCode,
-            barcode: source.barcode,
-            salePrice: source.salePrice,
-            gst: source.gst,
-            mrp: source.mrp,
-            actualPrice: source.actualPrice,
-            imageUrl: source.imageUrl,
-            imageKey: source.imageKey,
-            sku: source.sku,
-            warehouseId: new Types.ObjectId(payload.targetWarehouseId),
-            quantity: 0,
-            reservedQuantity: 0,
-            availableQuantity: 0,
-            minimumStockLevel: source.minimumStockLevel,
-            unit: source.unit,
-            status: source.status,
-            createdBy: new Types.ObjectId(actorId),
-            updatedBy: new Types.ObjectId(actorId),
-          },
-        ],
-        { session }
-      ).then((rows) => rows[0]);
-    }
-
-    if (!target) {
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Failed to create target stock item');
-    }
-
-    target.quantity += payload.quantity;
-    target.availableQuantity = recalculate(target.quantity, target.reservedQuantity).availableQuantity;
-    target.updatedBy = new Types.ObjectId(actorId);
-    await target.save({ session });
-
-    await StockMovementService.createMovement(
-      {
-        stockId: String(source._id),
-        warehouseId: String(source.warehouseId),
-        type: 'TRANSFER_OUT',
-        quantity: payload.quantity,
-        referenceType: payload.referenceType || 'transfer',
-        referenceId: payload.referenceId,
-        note: payload.note,
-        createdBy: actorId,
-      },
-      session
-    );
-
-    await StockMovementService.createMovement(
-      {
-        stockId: String(target._id),
-        warehouseId: String(target.warehouseId),
-        type: 'TRANSFER_IN',
-        quantity: payload.quantity,
-        referenceType: payload.referenceType || 'transfer',
-        referenceId: payload.referenceId,
-        note: payload.note,
-        createdBy: actorId,
-      },
-      session
-    );
-
-    await session.commitTransaction();
-    return { source, target };
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
-  }
-};
-
-export const reserveStock = async (id: string, payload: StockOperationDTO, actorId: string) => {
-  const doc = await Stock.findById(id);
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-
-  if (doc.availableQuantity < payload.quantity) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient available quantity for reservation');
-  }
-
-  doc.reservedQuantity += payload.quantity;
-  doc.availableQuantity = recalculate(doc.quantity, doc.reservedQuantity).availableQuantity;
-  doc.updatedBy = new Types.ObjectId(actorId);
-  await doc.save();
-
-  await StockMovementService.createMovement({
-    stockId: String(doc._id),
-    warehouseId: String(doc.warehouseId),
-    type: 'RESERVE',
-    quantity: payload.quantity,
-    referenceType: payload.referenceType,
-    referenceId: payload.referenceId,
-    note: payload.note,
-    createdBy: actorId,
-  });
-
-  return doc;
-};
-
-export const releaseStock = async (id: string, payload: StockOperationDTO, actorId: string) => {
-  const doc = await Stock.findById(id);
-  if (!doc) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Stock item not found');
-  }
-
-  if (doc.reservedQuantity < payload.quantity) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient reserved quantity to release');
-  }
-
-  doc.reservedQuantity -= payload.quantity;
-  doc.availableQuantity = recalculate(doc.quantity, doc.reservedQuantity).availableQuantity;
-  doc.updatedBy = new Types.ObjectId(actorId);
-  await doc.save();
-
-  await StockMovementService.createMovement({
-    stockId: String(doc._id),
-    warehouseId: String(doc.warehouseId),
-    type: 'RELEASE',
-    quantity: payload.quantity,
-    referenceType: payload.referenceType,
-    referenceId: payload.referenceId,
-    note: payload.note,
-    createdBy: actorId,
-  });
-
-  return doc;
+export const lowStockList = async (warehouseId?: string) => {
+  const filter: any = { $expr: { $lte: ['$availableQuantity', '$minStockLevel'] } };
+  if (warehouseId) filter.warehouseId = warehouseId;
+  return Stock.find(filter).sort({ availableQuantity: 1, updatedAt: -1 });
 };

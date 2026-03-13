@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { connectDatabase } from '../bootstrap/database';
+import { PERMISSION_SEEDS } from '../constants/permissions';
 import Permission from '../modules/permission/permission.model';
-import { DEFAULT_PERMISSIONS } from '../modules/permission/permission.constants';
 import logger from '../modules/logger/logger';
 
 dotenv.config();
@@ -9,15 +9,23 @@ dotenv.config();
 export const seedPermissions = async () => {
   await connectDatabase();
 
-  for (const permission of DEFAULT_PERMISSIONS) {
+  for (const permission of PERMISSION_SEEDS) {
     await Permission.updateOne(
-      { key: permission.key },
-      { $set: { description: permission.description, group: permission.group, isActive: true } },
+      { code: permission.code },
+      {
+        $set: {
+          name: permission.name,
+          code: permission.code,
+          module: permission.module,
+          description: permission.description,
+          isActive: true,
+        },
+      },
       { upsert: true }
     );
   }
 
-  logger.info(`Permissions seeded: ${DEFAULT_PERMISSIONS.length}`);
+  logger.info(`Permissions seeded: ${PERMISSION_SEEDS.length}`);
 };
 
 if (require.main === module) {

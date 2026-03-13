@@ -1,14 +1,21 @@
 export interface WarehouseCreateDTO {
   name: string;
   code: string;
-  address: string;
+  type: 'darkStore' | 'mainWarehouse' | 'miniWarehouse' | 'store';
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
   state: string;
   country: string;
   pincode: string;
   contactName?: string;
   contactPhone?: string;
-  status?: 'active' | 'inactive';
+  serviceArea?: {
+    type: 'Polygon';
+    coordinates: number[][][];
+  };
+  openingTime?: string;
+  closingTime?: string;
 }
 
-export interface WarehouseUpdateDTO extends Partial<WarehouseCreateDTO> {}
+export type WarehouseUpdateDTO = Partial<WarehouseCreateDTO> & { isActive?: boolean };

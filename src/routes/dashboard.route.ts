@@ -9,28 +9,30 @@ const router = Router();
  * /dashboard/summary:
  *   get:
  *     tags: [Dashboard]
- *     summary: Get super admin dashboard summary
- *     description: Returns aggregate metrics used on dashboard cards.
+ *     summary: Get dashboard summary stats
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Dashboard summary fetched successfully.
+ *         description: Dashboard summary fetched
  *         content:
  *           application/json:
  *             example:
  *               success: true
  *               message: "Dashboard summary fetched successfully"
  *               data:
- *                 totalWarehouses: 4
- *                 totalAdmins: 6
- *                 totalStockItems: 128
- *                 lowStockItems: 12
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin + dashboard.view permission required).
+ *                 totalWarehouses: 3
+ *                 totalActiveAdminUsers: 4
+ *                 totalSuppliers: 12
+ *                 totalProducts: 542
+ *                 totalStockItems: 860
+ *                 lowStockItemsCount: 18
+ *                 totalPurchaseOrders: 120
+ *                 totalGRN: 110
+ *                 totalInvoices: 230
+ *                 totalInHouseInvoices: 40
+ *                 todayStockMovementsCount: 312
  */
-router.get('/summary', authenticate, authorizeRoles('super_admin'), authorizePermissions('dashboard.view'), DashboardController.summary);
+router.get('/summary', authenticate, authorizeRoles('super_admin', 'admin', 'staff'), authorizePermissions('dashboard.view'), DashboardController.summary);
 
 export default router;

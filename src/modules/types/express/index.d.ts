@@ -6,8 +6,10 @@ declare global {
       _id: string | Types.ObjectId;
       name: string;
       email: string;
-      role: 'super_admin' | 'admin';
+      roleId: string | Types.ObjectId;
+      roleCode: string;
       permissions: string[];
+      effectivePermissions?: string[];
       isActive: boolean;
       [k: string]: any;
     }
@@ -19,3 +21,5 @@ declare module 'express-serve-static-core' {
     user?: Express.User;
   }
 }
+
+export {};

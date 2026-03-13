@@ -8,392 +8,166 @@ router.use(authenticate, authorizeRoles('super_admin'));
 
 /**
  * @openapi
- * components:
- *   schemas:
- *     AdminUser:
- *       type: object
- *       properties:
- *         _id:
- *           type: string
- *           example: "67d20000f3f7fdb2e0b19001"
- *         name:
- *           type: string
- *           example: "Inventory Admin"
- *         email:
- *           type: string
- *           example: "admin1@example.com"
- *         phone:
- *           type: string
- *           nullable: true
- *           example: "9876543210"
- *         role:
- *           type: string
- *           enum: [admin]
- *           example: "admin"
- *         permissions:
- *           type: array
- *           items:
- *             type: string
- *           example: ["stock.view", "stock.update"]
- *         isActive:
- *           type: boolean
- *           example: true
- *         lastLoginAt:
- *           type: string
- *           format: date-time
- *           nullable: true
- *           example: "2026-03-10T08:20:00.000Z"
- *         createdAt:
- *           type: string
- *           format: date-time
- *           example: "2026-03-10T07:00:00.000Z"
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           example: "2026-03-10T07:00:00.000Z"
- *     AdminListResponse:
- *       type: object
- *       properties:
- *         success:
- *           type: boolean
- *           example: true
- *         message:
- *           type: string
- *           example: "Admin users fetched successfully"
- *         data:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/AdminUser'
- *         meta:
- *           type: object
- *           properties:
- *             page:
- *               type: number
- *               example: 1
- *             limit:
- *               type: number
- *               example: 20
- *             total:
- *               type: number
- *               example: 1
- *
  * /admin-users:
  *   post:
- *     tags: [Admin Users]
- *     summary: Create admin user
- *     description: Create a new admin user with selected permissions.
+ *     tags: [Users]
+ *     summary: Create admin/staff user
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, email, password]
+ *             required: [name, email, password, roleCode]
  *             properties:
- *               name:
- *                 type: string
- *                 description: Admin full name.
- *                 example: "Inventory Admin"
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Unique admin email.
- *                 example: "admin1@example.com"
- *               password:
- *                 type: string
- *                 minLength: 8
- *                 description: Initial password.
- *                 example: "Admin@123456"
- *               phone:
- *                 type: string
- *                 nullable: true
- *                 description: Contact number.
- *                 example: "9876543210"
+ *               name: { type: string }
+ *               email: { type: string, format: email }
+ *               password: { type: string }
+ *               phone: { type: string }
+ *               roleCode: { type: string, example: admin }
  *               permissions:
  *                 type: array
- *                 description: Permission keys assigned to admin.
- *                 items:
- *                   type: string
- *                 example: ["stock.view", "stock.create"]
- *     security:
- *       - bearerAuth: []
+ *                 items: { type: string }
+ *           example:
+ *             name: "Ops Admin"
+ *             email: "ops.admin@example.com"
+ *             password: "Admin@123456"
+ *             roleCode: "admin"
+ *             permissions: ["stock.view", "stock.update"]
  *     responses:
  *       201:
- *         description: Admin user created successfully.
+ *         description: User created
  *         content:
  *           application/json:
  *             example:
  *               success: true
- *               message: "Admin user created successfully"
+ *               message: "User created successfully"
  *               data:
  *                 _id: "67d20000f3f7fdb2e0b19001"
- *                 name: "Inventory Admin"
- *                 email: "admin1@example.com"
- *                 phone: "9876543210"
- *                 role: "admin"
- *                 permissions: ["stock.view", "stock.create"]
- *                 isActive: true
- *                 createdAt: "2026-03-10T07:00:00.000Z"
- *                 updatedAt: "2026-03-10T07:00:00.000Z"
- *       400:
- *         description: Validation failure or duplicate email.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
+ *                 name: "Ops Admin"
+ *                 email: "ops.admin@example.com"
+ *                 roleCode: "admin"
  */
-router.post('/', authorizePermissions('admin-user.create'), UserValidator.createAdmin, UserController.createAdmin);
+router.post('/', authorizePermissions('user.create'), UserValidator.create, UserController.create);
+
 /**
  * @openapi
  * /admin-users:
  *   get:
- *     tags: [Admin Users]
- *     summary: List admin users
+ *     tags: [Users]
+ *     summary: List users
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number.
+ *         schema: { type: integer, example: 1 }
  *       - in: query
  *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Records per page.
+ *         schema: { type: integer, example: 20 }
  *       - in: query
  *         name: search
- *         schema:
- *           type: string
- *         description: Search by admin name or email.
- *         example: "admin1"
- *     security:
- *       - bearerAuth: []
+ *         schema: { type: string, example: admin }
+ *       - in: query
+ *         name: roleCode
+ *         schema: { type: string, example: staff }
+ *       - in: query
+ *         name: isActive
+ *         schema: { type: string, enum: ["true", "false"] }
  *     responses:
  *       200:
- *         description: Admin users fetched successfully.
+ *         description: Users fetched
  *         content:
  *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/AdminListResponse'
- *       400:
- *         description: Invalid query parameters.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
+ *             example:
+ *               success: true
+ *               message: "Users fetched successfully"
+ *               data:
+ *                 items: []
+ *                 pagination:
+ *                   page: 1
+ *                   limit: 20
+ *                   totalItems: 0
+ *                   totalPages: 1
  */
-router.get('/', authorizePermissions('admin-user.view'), UserValidator.listAdmins, UserController.listAdmins);
+router.get('/', authorizePermissions('user.view'), UserValidator.list, UserController.list);
+
 /**
  * @openapi
  * /admin-users/{id}:
  *   get:
- *     tags: [Admin Users]
- *     summary: Get admin user by id
+ *     tags: [Users]
+ *     summary: Get user detail
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: Admin user id.
- *         example: "67d20000f3f7fdb2e0b19001"
- *     security:
- *       - bearerAuth: []
+ *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Admin user fetched successfully.
- *       400:
- *         description: Invalid id format.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
- *       404:
- *         description: Admin user not found.
+ *         description: User fetched
  */
-router.get('/:id', authorizePermissions('admin-user.view'), UserValidator.idParam, UserController.getAdminById);
+router.get('/:id', authorizePermissions('user.view'), UserValidator.idParam, UserController.getById);
+
 /**
  * @openapi
  * /admin-users/{id}:
  *   patch:
- *     tags: [Admin Users]
- *     summary: Update admin user
+ *     tags: [Users]
+ *     summary: Update user
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: Admin user id.
+ *         schema: { type: string }
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 description: Updated name.
- *                 example: "Inventory Admin Updated"
- *               email:
- *                 type: string
- *                 format: email
- *                 description: Updated unique email.
- *                 example: "admin1.updated@example.com"
- *               phone:
- *                 type: string
- *                 nullable: true
- *                 description: Updated phone.
- *                 example: "9999999999"
- *               permissions:
- *                 type: array
- *                 description: Updated permission keys.
- *                 items:
- *                   type: string
- *                 example: ["stock.view", "stock.update"]
- *     security:
- *       - bearerAuth: []
+ *           example:
+ *             name: "Updated Admin"
+ *             isActive: true
  *     responses:
  *       200:
- *         description: Admin user updated successfully.
- *       400:
- *         description: Validation failure or duplicate email.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
- *       404:
- *         description: Admin user not found.
+ *         description: User updated
  */
-router.patch('/:id', authorizePermissions('admin-user.update'), UserValidator.idParam, UserValidator.updateAdmin, UserController.updateAdmin);
-/**
- * @openapi
- * /admin-users/{id}/status:
- *   patch:
- *     tags: [Admin Users]
- *     summary: Activate or deactivate admin user
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Admin user id.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [isActive]
- *             properties:
- *               isActive:
- *                 type: boolean
- *                 description: New active status.
- *                 example: false
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Admin user status updated successfully.
- *       400:
- *         description: Invalid request body.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
- *       404:
- *         description: Admin user not found.
- */
-router.patch('/:id/status', authorizePermissions('admin-user.delete'), UserValidator.idParam, UserValidator.updateAdminStatus, UserController.updateAdminStatus);
+router.patch('/:id', authorizePermissions('user.update'), UserValidator.idParam, UserValidator.update, UserController.update);
+
 /**
  * @openapi
  * /admin-users/{id}/password:
  *   patch:
- *     tags: [Admin Users]
- *     summary: Reset admin user password
+ *     tags: [Users]
+ *     summary: Reset user password
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         schema:
- *           type: string
- *         description: Admin user id.
+ *         schema: { type: string }
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             required: [password]
- *             properties:
- *               password:
- *                 type: string
- *                 minLength: 8
- *                 description: New password.
- *                 example: "NewAdmin@123456"
- *     security:
- *       - bearerAuth: []
+ *           example:
+ *             password: "NewStrong@123"
  *     responses:
  *       200:
- *         description: Admin user password reset successfully.
- *       400:
- *         description: Invalid request body.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
- *       404:
- *         description: Admin user not found.
+ *         description: Password reset successful
  */
-router.patch('/:id/password', authorizePermissions('admin-user.update'), UserValidator.idParam, UserValidator.resetAdminPassword, UserController.resetAdminPassword);
-/**
- * @openapi
- * /admin-users/{id}/permissions:
- *   patch:
- *     tags: [Admin Users]
- *     summary: Update admin user permissions
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Admin user id.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [permissions]
- *             properties:
- *               permissions:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Full permission key list to assign.
- *                 example: ["warehouse.view", "stock.view", "stock.update"]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Admin user permissions updated successfully.
- *       400:
- *         description: Invalid request body.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden (super_admin only).
- *       404:
- *         description: Admin user not found.
- */
-router.patch('/:id/permissions', authorizePermissions('admin-user.update'), UserValidator.idParam, UserValidator.updateAdminPermissions, UserController.updateAdminPermissions);
+router.patch(
+  '/:id/password',
+  authorizePermissions('user.update'),
+  UserValidator.idParam,
+  UserValidator.resetPassword,
+  UserController.resetPassword
+);
 
 export default router;

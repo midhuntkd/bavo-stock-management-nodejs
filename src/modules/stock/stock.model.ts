@@ -3,31 +3,26 @@ import { IStockDoc, IStockModel } from './stock.interface';
 
 const stockSchema = new Schema<IStockDoc, IStockModel>(
   {
-    productName: { type: String, required: true, trim: true },
-    hsnCode: { type: String, required: true, trim: true },
-    barcode: { type: String, required: true, trim: true },
-    salePrice: { type: Number, required: true, min: 0 },
-    gst: { type: Number, required: true, min: 0 },
-    mrp: { type: Number, required: true, min: 0 },
-    actualPrice: { type: Number, required: true, min: 0 },
-    imageUrl: { type: String, trim: true },
-    imageKey: { type: String, trim: true },
-    sku: { type: String, required: true, trim: true, uppercase: true },
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
     warehouseId: { type: Schema.Types.ObjectId, ref: 'Warehouse', required: true, index: true },
-    quantity: { type: Number, required: true, min: 0, default: 0 },
-    reservedQuantity: { type: Number, required: true, min: 0, default: 0 },
-    availableQuantity: { type: Number, required: true, min: 0, default: 0 },
-    minimumStockLevel: { type: Number, required: true, min: 0, default: 0 },
-    unit: { type: String, required: true, trim: true },
-    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    locationId: { type: Schema.Types.ObjectId, ref: 'WarehouseLocation', default: null, index: true },
+    quantity: { type: Number, required: true, default: 0, min: 0 },
+    reservedQuantity: { type: Number, required: true, default: 0, min: 0 },
+    damagedQuantity: { type: Number, required: true, default: 0, min: 0 },
+    availableQuantity: { type: Number, required: true, default: 0, min: 0 },
+    minStockLevel: { type: Number, required: true, default: 0, min: 0 },
+    reorderLevel: { type: Number, required: true, default: 0, min: 0 },
+    maxStockLevel: { type: Number, required: true, default: 0, min: 0 },
+    lastPurchasePrice: { type: Number, required: true, default: 0, min: 0 },
+    weightedAverageCost: { type: Number, required: true, default: 0, min: 0 },
+    status: { type: String, enum: ['inStock', 'lowStock', 'outOfStock', 'inactive'], default: 'outOfStock', index: true },
   },
   { timestamps: true, versionKey: false }
 );
 
-stockSchema.index({ warehouseId: 1, sku: 1 }, { unique: true });
-stockSchema.index({ status: 1, minimumStockLevel: 1, availableQuantity: 1 });
+stockSchema.index({ warehouseId: 1, productId: 1, locationId: 1 }, { unique: true });
+stockSchema.index({ warehouseId: 1, status: 1 });
+stockSchema.index({ productId: 1, availableQuantity: 1 });
 
 const Stock = mongoose.model<IStockDoc, IStockModel>('Stock', stockSchema);
 
