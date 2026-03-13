@@ -6,6 +6,8 @@ export interface IBrand {
   slug?: string;
   supplierId: Types.ObjectId;
   manufacturer?: string;
+  companyExecutiveName?: string;
+  companyExecutiveNumber?: string;
   category?: string;
   description?: string;
   logo?: string;

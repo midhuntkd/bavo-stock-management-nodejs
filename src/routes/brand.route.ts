@@ -23,6 +23,8 @@ router.use(authenticate, authorizeRoles('super_admin', 'admin', 'staff'));
  *             code: "KNR"
  *             supplierId: "67d12f10f3f7fdb2e0b18a70"
  *             manufacturer: "Unilever"
+ *             companyExecutiveName: "Shamshad"
+ *             companyExecutiveNumber: "9846718941"
  *             category: "Food"
  *             description: "Instant food brand"
  *             logo: "https://cdn.example.com/brands/knorr.png"
@@ -127,6 +129,8 @@ router.get('/:id', authorizePermissions('brand.view'), BrandValidator.idParam, B
  *           example:
  *             name: "Knorr Updated"
  *             manufacturer: "Unilever India"
+ *             companyExecutiveName: "Shamshad"
+ *             companyExecutiveNumber: "9846718941"
  *     responses:
  *       200:
  *         description: Brand updated

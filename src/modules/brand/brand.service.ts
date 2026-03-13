@@ -18,6 +18,8 @@ const normalizePayload = (payload: Record<string, any>) => {
   if (typeof next.code === 'string') next.code = next.code.trim().toUpperCase();
   if (typeof next.slug === 'string') next.slug = next.slug.trim().toLowerCase();
   if (typeof next.name === 'string') next.name = next.name.trim();
+  if (typeof next.companyExecutiveName === 'string') next.companyExecutiveName = next.companyExecutiveName.trim();
+  if (typeof next.companyExecutiveNumber === 'string') next.companyExecutiveNumber = next.companyExecutiveNumber.trim();
   return next;
 };
 
@@ -132,7 +134,7 @@ export const listBrandOptions = async (query: Record<string, any>) => {
   if (query.supplierId) filter.supplierId = query.supplierId;
 
   return Brand.find(filter)
-    .select({ _id: 1, name: 1, code: 1, supplierId: 1, manufacturer: 1, category: 1 })
+    .select({ _id: 1, name: 1, code: 1, supplierId: 1, manufacturer: 1, companyExecutiveName: 1, companyExecutiveNumber: 1, category: 1 })
     .sort({ name: 1 })
     .lean();
 };

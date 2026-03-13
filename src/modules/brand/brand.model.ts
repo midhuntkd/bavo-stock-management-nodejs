@@ -8,6 +8,8 @@ const brandSchema = new Schema<IBrandDoc, IBrandModel>(
     slug: { type: String, trim: true, lowercase: true },
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier', required: true, index: true },
     manufacturer: { type: String, trim: true },
+    companyExecutiveName: { type: String, trim: true },
+    companyExecutiveNumber: { type: String, trim: true },
     category: { type: String, trim: true },
     description: { type: String, trim: true },
     logo: { type: String, trim: true },
