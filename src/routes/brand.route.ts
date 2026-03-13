@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { uploadImage } from '../middlewares/upload.middleware';
 import { BrandController, BrandValidator } from '../modules/brand';
 
 const router = Router();
@@ -30,7 +31,7 @@ router.use(authenticate, authorizeRoles('super_admin', 'admin', 'staff'));
  *       201:
  *         description: Brand created
  */
-router.post('/', authorizePermissions('brand.create'), BrandValidator.create, BrandController.create);
+router.post('/', authorizePermissions('brand.create'), uploadImage.single('logo'), BrandValidator.create, BrandController.create);
 
 /**
  * @openapi
@@ -130,7 +131,7 @@ router.get('/:id', authorizePermissions('brand.view'), BrandValidator.idParam, B
  *       200:
  *         description: Brand updated
  */
-router.patch('/:id', authorizePermissions('brand.update'), BrandValidator.idParam, BrandValidator.update, BrandController.update);
+router.patch('/:id', authorizePermissions('brand.update'), uploadImage.single('logo'), BrandValidator.idParam, BrandValidator.update, BrandController.update);
 
 /**
  * @openapi

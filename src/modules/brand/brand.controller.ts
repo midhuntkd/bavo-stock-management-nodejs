@@ -1,8 +1,35 @@
 import { RequestHandler } from 'express';
+import httpStatus from 'http-status';
+import config from '../../configs/config';
+import ApiError from '../errors/ApiError';
+import { uploadImageToS3 } from '../utils/s3';
 import { catchAsync, sendSuccess } from '../utils';
 import * as BrandService from './brand.service';
 
+const normalizeBooleanField = (value: unknown) => {
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') return true;
+    if (normalized === 'false') return false;
+  }
+  return value;
+};
+
+const ensureS3Configured = () => {
+  if (!config.aws.region || !config.aws.accessKeyId || !config.aws.secretAccessKey || !config.aws.s3Bucket) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Image upload is not configured');
+  }
+};
+
 export const create: RequestHandler = catchAsync(async (req, res) => {
+  req.body.isActive = normalizeBooleanField(req.body.isActive);
+
+  if (req.file) {
+    ensureS3Configured();
+    const uploaded = await uploadImageToS3(req.file);
+    req.body.logo = uploaded.url;
+  }
+
   const data = await BrandService.createBrand(req.body, String(req.user?._id));
   sendSuccess(res, 'Brand created successfully', data, 201);
 });
@@ -18,6 +45,14 @@ export const getById: RequestHandler = catchAsync(async (req, res) => {
 });
 
 export const update: RequestHandler = catchAsync(async (req, res) => {
+  req.body.isActive = normalizeBooleanField(req.body.isActive);
+
+  if (req.file) {
+    ensureS3Configured();
+    const uploaded = await uploadImageToS3(req.file);
+    req.body.logo = uploaded.url;
+  }
+
   const data = await BrandService.updateBrand(String(req.params.id), req.body, String(req.user?._id));
   sendSuccess(res, 'Brand updated successfully', data);
 });
