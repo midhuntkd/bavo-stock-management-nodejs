@@ -12,11 +12,9 @@ const app: Express = express();
 const allowedOrigins = config.corsOrigin.split(',').map((origin: string) => origin.trim()).filter(Boolean);
 
 app.use(helmet());
-console.log('Allowed CORS origins:', allowedOrigins);
 app.use(
   cors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      console.log('CORS request origin:', origin);
       if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
