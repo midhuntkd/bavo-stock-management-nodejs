@@ -32,7 +32,7 @@ export const create = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     search: Joi.string(),
     isActive: Joi.string().valid('true', 'false'),
     batchEnabled: Joi.string().valid('true', 'false'),
@@ -62,3 +62,4 @@ export const update = validate({
     isActive: Joi.boolean(),
   }).min(1),
 });
+

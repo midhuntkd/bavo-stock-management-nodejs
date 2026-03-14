@@ -19,7 +19,7 @@ export const create = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     search: Joi.string(),
     roleCode: Joi.string(),
     isActive: Joi.string().valid('true', 'false'),
@@ -47,3 +47,4 @@ export const changePassword = validate({
     newPassword: Joi.string().min(8).required(),
   }),
 });
+

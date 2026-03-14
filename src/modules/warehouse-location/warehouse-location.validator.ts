@@ -23,7 +23,7 @@ export const list = validate({
   query: Joi.object({
     warehouseId: objectId,
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     isActive: Joi.string().valid('true', 'false'),
   }),
 });
@@ -44,3 +44,4 @@ export const update = validate({
 export const setActiveState = validate({
   body: Joi.object({ isActive: Joi.boolean().required() }),
 });
+

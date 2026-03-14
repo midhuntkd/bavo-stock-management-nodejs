@@ -32,7 +32,7 @@ export const create = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     status: Joi.string().valid('draft', 'approved', 'partiallyReceived', 'received', 'cancelled'),
     warehouseId: objectId,
     supplierId: objectId,
@@ -50,3 +50,4 @@ export const updateDraft = validate({
     items: Joi.array().items(itemSchema).min(1),
   }).min(1),
 });
+

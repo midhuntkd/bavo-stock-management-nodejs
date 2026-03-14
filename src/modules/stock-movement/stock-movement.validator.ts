@@ -8,7 +8,7 @@ export const idParam = validate({ params: Joi.object({ id: objectId.required() }
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     warehouseId: objectId,
     productId: objectId,
     type: Joi.string().valid(
@@ -39,3 +39,4 @@ export const list = validate({
     endDate: Joi.date().iso(),
   }),
 });
+

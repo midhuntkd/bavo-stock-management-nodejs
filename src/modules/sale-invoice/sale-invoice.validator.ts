@@ -43,10 +43,11 @@ export const createDraft = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     warehouseId: objectId,
     invoiceType: Joi.string().valid('customerSale', 'inHouseSale'),
     paymentStatus: Joi.string().valid('pending', 'paid', 'partial', 'cancelled'),
     status: Joi.string().valid('draft', 'confirmed', 'cancelled'),
   }),
 });
+

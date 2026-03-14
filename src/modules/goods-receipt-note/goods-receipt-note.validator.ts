@@ -34,8 +34,9 @@ export const create = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     status: Joi.string().valid('draft', 'received', 'cancelled'),
     warehouseId: objectId,
   }),
 });
+

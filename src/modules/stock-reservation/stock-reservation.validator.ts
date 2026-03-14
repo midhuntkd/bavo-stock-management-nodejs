@@ -21,9 +21,10 @@ export const reserve = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     warehouseId: objectId,
     orderId: Joi.string(),
     status: Joi.string().valid('reserved', 'released', 'consumed', 'expired'),
   }),
 });
+

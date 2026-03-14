@@ -26,7 +26,7 @@ const envVarsSchema = Joi.object()
     DEFAULT_TIMEZONE: Joi.string().default('UTC'),
     ALLOW_NEGATIVE_STOCK: Joi.boolean().truthy('true').falsy('false').default(false),
     DEFAULT_PAGINATION_LIMIT: Joi.number().integer().min(1).default(20),
-    MAX_PAGINATION_LIMIT: Joi.number().integer().min(1).default(100),
+    MAX_PAGINATION_LIMIT: Joi.number().integer().min(1).default(500),
 
     LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'debug').default('info'),
     CORS_ORIGIN: Joi.string().default('*'),

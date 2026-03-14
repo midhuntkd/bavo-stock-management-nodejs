@@ -30,7 +30,7 @@ export const create = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(100),
+    limit: Joi.number().integer().min(1).max(500),
     search: Joi.string(),
     supplierId: objectId,
     manufacturer: Joi.string(),
@@ -59,3 +59,4 @@ export const status = validate({
     isActive: Joi.boolean().required(),
   }),
 });
+
