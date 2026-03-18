@@ -39,6 +39,7 @@ export const update = validate({
     description: Joi.string().allow('', null),
     note: Joi.string().allow('', null),
     proof: Joi.string().allow('', null),
+    status: Joi.string().valid('draft', 'confirmed', 'cancelled'),
   }).min(1),
 });
 

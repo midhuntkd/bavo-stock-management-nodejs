@@ -266,9 +266,6 @@ export const cancelInvestmentEffect = async (investmentId: string, actorId: stri
 
 export const updateInvestment = async (id: string, payload: Record<string, any>, actorId: string) => {
   const next = normalizePayload(payload);
-  if (typeof next.status !== 'undefined') {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Use dedicated confirm or cancel endpoints to change investment status');
-  }
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -284,6 +281,8 @@ export const updateInvestment = async (id: string, payload: Record<string, any>,
     if (investment.status === 'cancelled') {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Cancelled investment cannot be updated');
     }
+
+    const targetStatus = typeof next.status !== 'undefined' ? next.status : investment.status;
 
     const targetInvestorId = String(next.investorUserId || investment.investorUserId);
     const investor = await ensureInvestorExists(targetInvestorId, session);
@@ -318,12 +317,13 @@ export const updateInvestment = async (id: string, payload: Record<string, any>,
     if (typeof next.description !== 'undefined') investment.description = next.description;
     if (typeof next.note !== 'undefined') investment.note = next.note;
     if (typeof next.proof !== 'undefined') investment.proof = next.proof;
+    investment.status = targetStatus === 'confirmed' ? 'draft' : targetStatus;
     investment.roleSnapshot = investor.roleCode;
     investment.updatedBy = new Types.ObjectId(actorId);
 
     await investment.save({ session });
 
-    if (investment.status === 'confirmed') {
+    if (targetStatus === 'confirmed') {
       await applyInvestmentEffectToDocument(investment, actorId, session);
     }
 
