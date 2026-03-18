@@ -13,6 +13,8 @@ export const create = validate({
     phone: Joi.string().allow('', null),
     roleCode: Joi.string().required(),
     permissions: Joi.array().items(Joi.string()).default([]),
+    permissionsCsv: Joi.string().allow('', null),
+    isActive: Joi.boolean(),
   }),
 });
 
@@ -33,6 +35,7 @@ export const update = validate({
     phone: Joi.string().allow('', null),
     roleCode: Joi.string(),
     permissions: Joi.array().items(Joi.string()),
+    permissionsCsv: Joi.string().allow('', null),
     isActive: Joi.boolean(),
   }).min(1),
 });

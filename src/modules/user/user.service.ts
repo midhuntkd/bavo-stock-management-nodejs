@@ -28,12 +28,24 @@ const getRoleByCode = async (roleCode: string) => {
   return role;
 };
 
+const normalizePermissionCodes = (payload: Pick<CreateUserDTO, 'permissions' | 'permissionsCsv'>) => {
+  if (typeof payload.permissions === 'undefined' && typeof payload.permissionsCsv === 'undefined') {
+    return undefined;
+  }
+
+  const csvPermissions = typeof payload.permissionsCsv === 'string' ? payload.permissionsCsv.split(',') : [];
+  const arrayPermissions = Array.isArray(payload.permissions) ? payload.permissions : [];
+
+  return [...new Set([...arrayPermissions, ...csvPermissions].map((code) => code.trim().toLowerCase()).filter(Boolean))];
+};
+
 export const createUser = async (payload: CreateUserDTO, actorId: string) => {
   if (await User.isEmailTaken(payload.email)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
 
   const role = await getRoleByCode(payload.roleCode);
+  const permissions = normalizePermissionCodes(payload) || [];
   const user = await User.create({
     name: payload.name,
     email: payload.email,
@@ -41,7 +53,8 @@ export const createUser = async (payload: CreateUserDTO, actorId: string) => {
     phone: payload.phone,
     roleId: role._id,
     roleCode: role.code,
-    permissions: payload.permissions || [],
+    permissions,
+    isActive: typeof payload.isActive === 'boolean' ? payload.isActive : true,
     createdBy: new Types.ObjectId(actorId),
     updatedBy: new Types.ObjectId(actorId),
   });
@@ -108,7 +121,8 @@ export const updateUser = async (id: string, payload: UpdateUserDTO, actorId: st
   if (typeof payload.name !== 'undefined') user.name = payload.name;
   if (typeof payload.email !== 'undefined') user.email = payload.email;
   if (typeof payload.phone !== 'undefined') user.phone = payload.phone;
-  if (typeof payload.permissions !== 'undefined') user.permissions = payload.permissions;
+  const permissions = normalizePermissionCodes(payload);
+  if (typeof permissions !== 'undefined') user.permissions = permissions;
   if (typeof payload.isActive !== 'undefined') user.isActive = payload.isActive;
 
   user.updatedBy = new Types.ObjectId(actorId);

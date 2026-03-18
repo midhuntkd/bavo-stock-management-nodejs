@@ -5,6 +5,8 @@ export interface CreateUserDTO {
   phone?: string;
   roleCode: string;
   permissions?: string[];
+  permissionsCsv?: string;
+  isActive?: boolean;
 }
 
 export interface UpdateUserDTO {
@@ -13,6 +15,7 @@ export interface UpdateUserDTO {
   phone?: string;
   roleCode?: string;
   permissions?: string[];
+  permissionsCsv?: string;
   isActive?: boolean;
 }
 

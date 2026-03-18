@@ -27,14 +27,19 @@ router.use(authenticate, authorizeRoles('super_admin'));
  *               password: { type: string }
  *               phone: { type: string }
  *               roleCode: { type: string, example: admin }
+ *               isActive: { type: boolean, example: true }
  *               permissions:
  *                 type: array
  *                 items: { type: string }
+ *               permissionsCsv:
+ *                 type: string
+ *                 example: stock.view,stock.update
  *           example:
  *             name: "Ops Admin"
  *             email: "ops.admin@example.com"
  *             password: "Admin@123456"
  *             roleCode: "admin"
+ *             isActive: true
  *             permissions: ["stock.view", "stock.update"]
  *     responses:
  *       201:
@@ -133,6 +138,7 @@ router.get('/:id', authorizePermissions('user.view'), UserValidator.idParam, Use
  *           example:
  *             name: "Updated Admin"
  *             isActive: true
+ *             permissionsCsv: "stock.view,stock.update"
  *     responses:
  *       200:
  *         description: User updated
