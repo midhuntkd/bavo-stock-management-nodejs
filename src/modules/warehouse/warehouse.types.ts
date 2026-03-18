@@ -16,6 +16,7 @@ export interface WarehouseCreateDTO {
   };
   openingTime?: string;
   closingTime?: string;
+  isActive?: boolean;
 }
 
 export type WarehouseUpdateDTO = Partial<WarehouseCreateDTO> & { isActive?: boolean };

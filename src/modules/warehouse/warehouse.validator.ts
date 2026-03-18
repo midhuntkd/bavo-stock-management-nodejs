@@ -25,6 +25,7 @@ export const create = validate({
     }).optional(),
     openingTime: Joi.string().allow('', null),
     closingTime: Joi.string().allow('', null),
+    isActive: Joi.boolean(),
   }),
 });
 
