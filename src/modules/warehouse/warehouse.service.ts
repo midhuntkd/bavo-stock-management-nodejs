@@ -1,7 +1,6 @@
 import httpStatus from 'http-status';
 import { Types } from 'mongoose';
 import ApiError from '../errors/ApiError';
-import { getPagination } from '../utils';
 import Warehouse from './warehouse.model';
 import { WarehouseCreateDTO, WarehouseUpdateDTO } from './warehouse.types';
 
@@ -19,9 +18,17 @@ export const createWarehouse = async (payload: WarehouseCreateDTO, actorId: stri
 };
 
 export const listWarehouses = async (query: Record<string, any>) => {
-  const { page, limit, skip } = getPagination(query);
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.max(1, Number(query.limit) || 20);
+  const skip = (page - 1) * limit;
   const filter: any = {};
-  if (typeof query.isActive !== 'undefined') filter.isActive = query.isActive === 'true';
+  if (typeof query.isActive !== 'undefined') {
+    filter.isActive = query.isActive === 'true';
+  } else if (query.status === 'active') {
+    filter.isActive = true;
+  } else if (query.status === 'inactive') {
+    filter.isActive = false;
+  }
   if (query.type) filter.type = query.type;
   if (query.search) {
     filter.$or = [

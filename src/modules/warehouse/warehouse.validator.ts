@@ -32,10 +32,11 @@ export const create = validate({
 export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
-    limit: Joi.number().integer().min(1).max(500),
+    limit: Joi.number().integer().min(1),
     search: Joi.string(),
     type: warehouseType,
     isActive: Joi.string().valid('true', 'false'),
+    status: Joi.string().valid('active', 'inactive', 'all'),
   }),
 });
 
