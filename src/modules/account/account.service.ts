@@ -19,6 +19,7 @@ const normalizePayload = (payload: Record<string, any>) => {
   if (typeof next.currency === 'string') next.currency = next.currency.trim().toUpperCase();
   if (typeof next.description === 'string') next.description = next.description.trim();
   if (typeof next.openingBalance !== 'undefined') next.openingBalance = roundToCurrency(Number(next.openingBalance));
+  if (typeof next.currentBalance !== 'undefined') next.currentBalance = roundToCurrency(Number(next.currentBalance));
   return next;
 };
 
@@ -51,7 +52,12 @@ export const createAccount = async (payload: Record<string, any>, actorId: strin
 
   try {
     const code = next.code || (await generateRunningNumber(config.numbering.accountCodePrefix, 'account_code'));
-    const openingBalance = typeof next.openingBalance === 'number' ? next.openingBalance : 0;
+    const openingBalance =
+      typeof next.openingBalance === 'number'
+        ? next.openingBalance
+        : typeof next.currentBalance === 'number'
+          ? next.currentBalance
+          : 0;
 
     const account = await Account.create(
       [

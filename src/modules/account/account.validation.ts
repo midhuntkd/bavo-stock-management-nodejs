@@ -16,6 +16,7 @@ export const create = validate({
     ifsc: Joi.string().allow('', null),
     branch: Joi.string().allow('', null),
     openingBalance: Joi.number().min(0).default(0),
+    currentBalance: Joi.number().min(0),
     currency: Joi.string().default('INR'),
     description: Joi.string().allow('', null),
     isActive: Joi.boolean(),
