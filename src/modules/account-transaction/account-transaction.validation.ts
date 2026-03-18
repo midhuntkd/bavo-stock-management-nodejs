@@ -8,6 +8,7 @@ const bodyShape = {
   transactionDate: Joi.date().iso().required(),
   type: Joi.string().valid('credit', 'debit', 'transfer_in', 'transfer_out').required(),
   sourceType: Joi.string().valid('investment', 'expense', 'sale', 'purchase', 'salary', 'bill', 'bankDeposit', 'bankWithdrawal', 'reimbursementClearance', 'manual', 'transfer').default('manual'),
+  subType: Joi.string().allow('', null),
   referenceType: Joi.string().allow('', null),
   referenceId: Joi.string().allow('', null),
   amount: Joi.number().min(0).required(),
@@ -15,6 +16,7 @@ const bodyShape = {
   description: Joi.string().allow('', null),
   note: Joi.string().allow('', null),
   proof: Joi.string().allow('', null),
+  transferredByUserId: objectId.allow(null),
 };
 
 export const idParam = validate({ params: Joi.object({ id: objectId.required() }) });
@@ -26,6 +28,7 @@ export const update = validate({
     accountId: objectId,
     transactionDate: Joi.date().iso(),
     type: Joi.string().valid('credit', 'debit', 'transfer_in', 'transfer_out'),
+    subType: Joi.string().allow('', null),
     referenceType: Joi.string().allow('', null),
     referenceId: Joi.string().allow('', null),
     amount: Joi.number().min(0),
@@ -33,6 +36,7 @@ export const update = validate({
     description: Joi.string().allow('', null),
     note: Joi.string().allow('', null),
     proof: Joi.string().allow('', null),
+    transferredByUserId: objectId.allow(null),
   }).min(1),
 });
 
@@ -43,8 +47,10 @@ export const list = validate({
     accountId: objectId,
     type: Joi.string().valid('credit', 'debit', 'transfer_in', 'transfer_out', 'opening'),
     sourceType: Joi.string().valid('investment', 'expense', 'sale', 'purchase', 'salary', 'bill', 'bankDeposit', 'bankWithdrawal', 'reimbursementClearance', 'manual', 'transfer'),
+    subType: Joi.string(),
     referenceType: Joi.string(),
     referenceId: Joi.string(),
+    transferredByUserId: objectId,
     status: Joi.string().valid('active', 'cancelled', 'all'),
     startDate: Joi.date().iso(),
     endDate: Joi.date().iso(),

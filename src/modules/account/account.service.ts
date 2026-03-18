@@ -6,6 +6,7 @@ import { getDateRangeFromQuery, getSignedTransactionAmount, roundToCurrency } fr
 import { getPagination, generateRunningNumber } from '../utils';
 import AccountTransaction from '../account-transaction/account-transaction.model';
 import { applyAccountCredit } from '../account-transaction/account-transaction.service';
+import CompanyExpense from '../company-expense/company-expense.model';
 import Account from './account.model';
 
 const normalizePayload = (payload: Record<string, any>) => {
@@ -133,11 +134,50 @@ export const listAccounts = async (query: Record<string, any>) => {
 };
 
 export const getAccountById = async (id: string) => {
-  const account = await Account.findById(id).populate('createdBy', 'name email').populate('updatedBy', 'name email');
+  const [account, totals, recentExpenses] = await Promise.all([
+    Account.findById(id).populate('createdBy', 'name email').populate('updatedBy', 'name email'),
+    AccountTransaction.aggregate([
+      { $match: { accountId: new Types.ObjectId(id), status: 'active' } },
+      {
+        $group: {
+          _id: null,
+          totalCredits: {
+            $sum: {
+              $cond: [{ $in: ['$type', ['credit', 'transfer_in', 'opening']] }, '$amount', 0],
+            },
+          },
+          totalDebits: {
+            $sum: {
+              $cond: [{ $in: ['$type', ['debit', 'transfer_out']] }, '$amount', 0],
+            },
+          },
+        },
+      },
+    ]),
+    CompanyExpense.find({ accountId: id, status: { $in: ['draft', 'confirmed'] } })
+      .populate('transferredByUserId', 'name email roleCode')
+      .populate('createdBy', 'name email roleCode')
+      .populate('approvedBy', 'name email roleCode')
+      .sort({ expenseDate: -1, createdAt: -1 })
+      .limit(10)
+      .lean(),
+  ]);
+
   if (!account) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Account not found');
   }
-  return account;
+
+  return {
+    ...account.toObject(),
+    summary: {
+      openingBalance: roundToCurrency(account.openingBalance),
+      totalCredits: roundToCurrency(totals[0]?.totalCredits || 0),
+      totalDebits: roundToCurrency(totals[0]?.totalDebits || 0),
+      closingBalance: roundToCurrency(account.currentBalance),
+      currentBalance: roundToCurrency(account.currentBalance),
+    },
+    recentExpenses,
+  };
 };
 
 export const updateAccount = async (id: string, payload: Record<string, any>, actorId: string) => {

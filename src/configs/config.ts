@@ -25,6 +25,7 @@ const envVarsSchema = Joi.object()
 
     DEFAULT_TIMEZONE: Joi.string().default('UTC'),
     ALLOW_NEGATIVE_STOCK: Joi.boolean().truthy('true').falsy('false').default(false),
+    ALLOW_NEGATIVE_BALANCE: Joi.boolean().truthy('true').falsy('false').default(false),
     DEFAULT_PAGINATION_LIMIT: Joi.number().integer().min(1).default(20),
     MAX_PAGINATION_LIMIT: Joi.number().integer().min(1).default(500),
 
@@ -82,6 +83,10 @@ const config = {
   corsOrigin: envVars.CORS_ORIGIN,
   timezone: envVars.DEFAULT_TIMEZONE,
   allowNegativeStock: envVars.ALLOW_NEGATIVE_STOCK,
+  allowNegativeBalance:
+    typeof process.env.ALLOW_NEGATIVE_BALANCE !== 'undefined'
+      ? envVars.ALLOW_NEGATIVE_BALANCE
+      : envVars.ALLOW_NEGATIVE_STOCK,
   pagination: {
     defaultLimit: envVars.DEFAULT_PAGINATION_LIMIT,
     maxLimit: envVars.MAX_PAGINATION_LIMIT,

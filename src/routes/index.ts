@@ -17,6 +17,7 @@ import purchaseOrderRoute from './purchase-order.route';
 import accountRoute from './account.route';
 import accountTransactionRoute from './account-transaction.route';
 import accountingRoute from './accounting.route';
+import companyExpenseRoute from './company-expense.route';
 import goodsReceiptNoteRoute from './goods-receipt-note.route';
 import investmentRoute from './investment.route';
 import personalSpendRoute from './personal-spend.route';
@@ -49,6 +50,7 @@ const defaultIRoute = [
   { path: '/accounts', route: accountRoute },
   { path: '/account-transactions', route: accountTransactionRoute },
   { path: '/accounting', route: accountingRoute },
+  { path: '/company-expenses', route: companyExpenseRoute },
   { path: '/grn', route: goodsReceiptNoteRoute },
   { path: '/investments', route: investmentRoute },
   { path: '/personal-spends', route: personalSpendRoute },

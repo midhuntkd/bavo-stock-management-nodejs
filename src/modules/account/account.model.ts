@@ -11,7 +11,7 @@ const accountSchema = new Schema<IAccountDoc, IAccountModel>(
     ifsc: { type: String, trim: true },
     branch: { type: String, trim: true },
     openingBalance: { type: Number, required: true, default: 0, min: 0 },
-    currentBalance: { type: Number, required: true, default: 0, min: 0 },
+    currentBalance: { type: Number, required: true, default: 0 },
     currency: { type: String, trim: true, uppercase: true, default: 'INR' },
     description: { type: String, trim: true },
     isActive: { type: Boolean, default: true, index: true },

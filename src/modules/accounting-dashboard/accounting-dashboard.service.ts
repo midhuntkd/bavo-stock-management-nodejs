@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { getMonthDateRange, roundToCurrency } from './accounting.helper';
 import Account from '../account/account.model';
 import AccountTransaction from '../account-transaction/account-transaction.model';
+import CompanyExpense from '../company-expense/company-expense.model';
 import Investment from '../investment/investment.model';
 import PersonalSpend from '../personal-spend/personal-spend.model';
 import Reimbursement from '../reimbursement/reimbursement.model';
@@ -62,6 +63,8 @@ export const getAccountingDashboardSummary = async () => {
     totalInvestments,
     totalInvestmentsByUser,
     totalCompanyAccountBalance,
+    totalCompanyExpensesThisMonth,
+    expenseByTypeThisMonth,
     totalPendingPersonalSpend,
     totalClearedThisMonth,
     totalPendingReimbursementByUser,
@@ -77,6 +80,16 @@ export const getAccountingDashboardSummary = async () => {
       { $sort: { totalAmount: -1 } },
     ]),
     Account.aggregate([{ $match: { isActive: true } }, { $group: { _id: null, totalAmount: { $sum: '$currentBalance' } } }]),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+    ]),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: '$expenseType', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $project: { _id: 0, expenseType: '$_id', totalAmount: 1, count: 1 } },
+      { $sort: { totalAmount: -1 } },
+    ]),
     PersonalSpend.aggregate([{ $match: { isActive: true } }, { $group: { _id: null, totalAmount: { $sum: '$pendingAmount' } } }]),
     Reimbursement.aggregate([
       { $match: { status: 'active', clearanceDate: { $gte: start, $lte: end } } },
@@ -97,6 +110,8 @@ export const getAccountingDashboardSummary = async () => {
     totalInvestments: totalInvestments[0]?.totalAmount || 0,
     totalInvestmentsByUser,
     totalCompanyAccountBalance: totalCompanyAccountBalance[0]?.totalAmount || 0,
+    totalCompanyExpensesThisMonth: totalCompanyExpensesThisMonth[0]?.totalAmount || 0,
+    expenseByTypeThisMonth,
     totalPendingPersonalSpend: totalPendingPersonalSpend[0]?.totalAmount || 0,
     totalClearedAmountThisMonth: totalClearedThisMonth[0]?.totalAmount || 0,
     totalPendingReimbursementByUser,
@@ -107,7 +122,17 @@ export const getAccountingDashboardSummary = async () => {
 export const generateMonthlyAccountingSummary = async (month: number, year: number) => {
   const { start, end } = getMonthDateRange(month, year);
 
-  const [monthlySpendSummaryByUser, monthlyInvestmentSummary, monthlyCashInOut, accountList] = await Promise.all([
+  const [
+    monthlySpendSummaryByUser,
+    monthlyInvestmentSummary,
+    monthlyCashInOut,
+    accountList,
+    monthlyCompanyExpenses,
+    companyExpenseByType,
+    companyExpenseByAccount,
+    companyExpenseByTransferredByUser,
+    companyExpenseByCreatedByAdmin,
+  ] = await Promise.all([
     getMonthlyUserSpendRows(start, end),
     Investment.aggregate([
       { $match: { status: 'confirmed', investmentDate: { $gte: start, $lte: end } } },
@@ -151,6 +176,68 @@ export const generateMonthlyAccountingSummary = async (month: number, year: numb
       },
     ]),
     Account.find({ isActive: true }).select({ _id: 1 }).lean(),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+    ]),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: '$expenseType', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $project: { _id: 0, expenseType: '$_id', totalAmount: 1, count: 1 } },
+      { $sort: { totalAmount: -1 } },
+    ]),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: '$accountId', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $lookup: { from: 'accounts', localField: '_id', foreignField: '_id', as: 'account' } },
+      { $unwind: { path: '$account', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          accountId: '$_id',
+          accountName: '$account.name',
+          accountCode: '$account.code',
+          accountType: '$account.type',
+          totalAmount: 1,
+          count: 1,
+        },
+      },
+      { $sort: { totalAmount: -1 } },
+    ]),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: '$transferredByUserId', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          userName: '$user.name',
+          userEmail: '$user.email',
+          totalAmount: 1,
+          count: 1,
+        },
+      },
+      { $sort: { totalAmount: -1 } },
+    ]),
+    CompanyExpense.aggregate([
+      { $match: { status: 'confirmed', expenseDate: { $gte: start, $lte: end } } },
+      { $group: { _id: '$createdBy', totalAmount: { $sum: '$amount' }, count: { $sum: 1 } } },
+      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 0,
+          userId: '$_id',
+          userName: '$user.name',
+          userEmail: '$user.email',
+          totalAmount: 1,
+          count: 1,
+        },
+      },
+      { $sort: { totalAmount: -1 } },
+    ]),
   ]);
 
   const accountStatements = await Promise.all(
@@ -167,6 +254,13 @@ export const generateMonthlyAccountingSummary = async (month: number, year: numb
     { totalPersonalSpend: 0, clearedAmount: 0, pendingAmount: 0, carryForwardAmount: 0 }
   );
 
+  const getExpenseTotal = (expenseTypes: string[]) =>
+    roundToCurrency(
+      companyExpenseByType
+        .filter((item) => expenseTypes.includes(item.expenseType))
+        .reduce((sum, item) => sum + item.totalAmount, 0)
+    );
+
   return {
     month,
     year,
@@ -177,6 +271,16 @@ export const generateMonthlyAccountingSummary = async (month: number, year: numb
     monthlyInvestmentSummary,
     monthlyCashIn: monthlyCashInOut[0]?.totalCashIn || 0,
     monthlyCashOut: monthlyCashInOut[0]?.totalCashOut || 0,
+    totalCompanyExpenses: roundToCurrency(monthlyCompanyExpenses[0]?.totalAmount || 0),
+    companyExpenseByType,
+    companyExpenseByAccount,
+    companyExpenseByTransferredByUser,
+    companyExpenseByCreatedByAdmin,
+    salaryTotal: getExpenseTotal(['salary']),
+    utilityBillTotal: getExpenseTotal(['electricityBill', 'waterBill', 'governmentBill', 'internetPhone']),
+    stockPurchaseTotal: getExpenseTotal(['stockPurchase']),
+    officeEssentialsTotal: getExpenseTotal(['officeEssentials']),
+    miscellaneousTotal: getExpenseTotal(['miscellaneous', 'other']),
     accountStatements: accountStatements.map((statement) => ({
       accountId: statement.account._id,
       accountName: statement.account.name,

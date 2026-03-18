@@ -80,6 +80,13 @@ export const PERMISSION_SEEDS: PermissionSeed[] = [
   { name: 'Investment Delete', code: 'investment.delete', module: 'investment', description: 'Delete draft investments' },
   { name: 'Investment Status', code: 'investment.status', module: 'investment', description: 'Confirm or cancel investments' },
 
+  { name: 'Company Expense View', code: 'company-expense.view', module: 'company-expense', description: 'View company expenses' },
+  { name: 'Company Expense Create', code: 'company-expense.create', module: 'company-expense', description: 'Create company expenses' },
+  { name: 'Company Expense Update', code: 'company-expense.update', module: 'company-expense', description: 'Update company expenses' },
+  { name: 'Company Expense Delete', code: 'company-expense.delete', module: 'company-expense', description: 'Delete draft company expenses' },
+  { name: 'Company Expense Confirm', code: 'company-expense.confirm', module: 'company-expense', description: 'Confirm company expenses' },
+  { name: 'Company Expense Cancel', code: 'company-expense.cancel', module: 'company-expense', description: 'Cancel company expenses' },
+
   { name: 'Account View', code: 'account.view', module: 'account', description: 'View company accounts' },
   { name: 'Account Create', code: 'account.create', module: 'account', description: 'Create company accounts' },
   { name: 'Account Update', code: 'account.update', module: 'account', description: 'Update company accounts' },

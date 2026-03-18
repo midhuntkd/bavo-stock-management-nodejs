@@ -56,6 +56,17 @@ const options: swaggerJSDoc.Options = {
       '/investments/{id}': { get: { tags: ['Accounting'], summary: 'Investment detail' }, patch: { tags: ['Accounting'], summary: 'Update investment' } },
       '/investments/{id}/confirm': { patch: { tags: ['Accounting'], summary: 'Confirm investment' } },
       '/investments/{id}/cancel': { patch: { tags: ['Accounting'], summary: 'Cancel investment' } },
+      '/company-expenses': {
+        get: { tags: ['Accounting'], summary: 'List company expenses' },
+        post: { tags: ['Accounting'], summary: 'Create company expense' },
+      },
+      '/company-expenses/{id}': {
+        get: { tags: ['Accounting'], summary: 'Company expense detail' },
+        patch: { tags: ['Accounting'], summary: 'Update company expense' },
+        delete: { tags: ['Accounting'], summary: 'Delete draft company expense' },
+      },
+      '/company-expenses/{id}/confirm': { patch: { tags: ['Accounting'], summary: 'Confirm company expense' } },
+      '/company-expenses/{id}/cancel': { patch: { tags: ['Accounting'], summary: 'Cancel company expense' } },
       '/personal-spends': {
         get: { tags: ['Accounting'], summary: 'List personal spends' },
         post: { tags: ['Accounting'], summary: 'Create personal spend' },

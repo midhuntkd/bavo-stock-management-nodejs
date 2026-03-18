@@ -21,6 +21,7 @@ export interface IAccountTransaction {
   transactionDate: Date;
   type: AccountTransactionType;
   sourceType: AccountTransactionSourceType;
+  subType?: string;
   referenceType?: string;
   referenceId?: string;
   amount: number;
@@ -30,6 +31,7 @@ export interface IAccountTransaction {
   description?: string;
   note?: string;
   proof?: string;
+  transferredByUserId?: Types.ObjectId;
   status: AccountTransactionStatus;
   createdBy?: Types.ObjectId;
   approvedBy?: Types.ObjectId;

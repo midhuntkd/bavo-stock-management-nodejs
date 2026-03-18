@@ -1,5 +1,6 @@
 import httpStatus from 'http-status';
 import mongoose, { ClientSession, Types } from 'mongoose';
+import config from '../../configs/config';
 import ApiError from '../errors/ApiError';
 import { getDateRangeFromQuery, roundToCurrency } from '../accounting-dashboard/accounting.helper';
 import { getPagination } from '../utils';
@@ -16,6 +17,7 @@ type FinancialMutationPayload = {
   transactionDate: Date | string;
   type: AccountTransactionType;
   sourceType: AccountTransactionSourceType;
+  subType?: string;
   amount: number;
   paymentMethod: AccountTransactionPaymentMethod;
   referenceType?: string;
@@ -23,6 +25,7 @@ type FinancialMutationPayload = {
   description?: string;
   note?: string;
   proof?: string;
+  transferredByUserId?: string;
   createdBy: string;
   approvedBy?: string;
   allowNegativeBalance?: boolean;
@@ -68,6 +71,7 @@ const createTransactionRecord = async (
     transactionDate: normalizeTransactionDate(payload.transactionDate),
     type: payload.type,
     sourceType: payload.sourceType,
+    subType: payload.subType,
     referenceType: payload.referenceType,
     referenceId: payload.referenceId,
     amount: roundToCurrency(payload.amount),
@@ -77,6 +81,7 @@ const createTransactionRecord = async (
     description: payload.description,
     note: payload.note,
     proof: payload.proof,
+    transferredByUserId: payload.transferredByUserId ? new Types.ObjectId(payload.transferredByUserId) : undefined,
     createdBy: new Types.ObjectId(payload.createdBy),
     approvedBy: payload.approvedBy ? new Types.ObjectId(payload.approvedBy) : undefined,
     reversalOf,
@@ -110,7 +115,8 @@ export const applyAccountDebit = async (accountId: string, payload: FinancialMut
 
   const balanceBefore = roundToCurrency(account.currentBalance);
   const balanceAfter = roundToCurrency(balanceBefore - amount);
-  if (balanceAfter < 0 && !payload.allowNegativeBalance) {
+  const allowNegativeBalance = typeof payload.allowNegativeBalance === 'boolean' ? payload.allowNegativeBalance : config.allowNegativeBalance;
+  if (balanceAfter < 0 && !allowNegativeBalance) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Insufficient account balance');
   }
 
@@ -162,6 +168,7 @@ export const reverseAccountTransactionEffect = async (
     transactionDate: new Date(),
     type: reverseType,
     sourceType: transaction.sourceType,
+    subType: transaction.subType,
     amount: transaction.amount,
     paymentMethod: transaction.paymentMethod,
     referenceType: transaction.referenceType || 'accountTransaction',
@@ -169,6 +176,7 @@ export const reverseAccountTransactionEffect = async (
     description: `Reversal of ${transaction.referenceType || 'account transaction'}`,
     note: note || transaction.note,
     proof: transaction.proof,
+    transferredByUserId: transaction.transferredByUserId ? String(transaction.transferredByUserId) : undefined,
     createdBy: actorId,
     approvedBy: actorId,
   };
@@ -201,6 +209,7 @@ const createManualTransactionInternal = async (
     transactionDate: payload.transactionDate,
     type: payload.type,
     sourceType: payload.sourceType || 'manual',
+    subType: payload.subType,
     amount: Number(payload.amount),
     paymentMethod: payload.paymentMethod,
     referenceType: payload.referenceType,
@@ -208,6 +217,7 @@ const createManualTransactionInternal = async (
     description: payload.description,
     note: payload.note,
     proof: payload.proof,
+    transferredByUserId: payload.transferredByUserId,
     createdBy: actorId,
     approvedBy: payload.approvedBy || actorId,
   };
@@ -254,12 +264,15 @@ export const listAccountTransactions = async (query: Record<string, any>) => {
   if (query.accountId) filter.accountId = query.accountId;
   if (query.type) filter.type = query.type;
   if (query.sourceType) filter.sourceType = query.sourceType;
+  if (query.subType) filter.subType = query.subType;
   if (query.referenceType) filter.referenceType = query.referenceType;
   if (query.referenceId) filter.referenceId = query.referenceId;
+  if (query.transferredByUserId) filter.transferredByUserId = query.transferredByUserId;
 
   const [items, totalItems] = await Promise.all([
     AccountTransaction.find(filter)
       .populate('accountId', 'name code type currency currentBalance')
+      .populate('transferredByUserId', 'name email roleCode')
       .populate('createdBy', 'name email roleCode')
       .populate('approvedBy', 'name email roleCode')
       .sort({ transactionDate: -1, createdAt: -1 })
@@ -282,6 +295,7 @@ export const listAccountTransactions = async (query: Record<string, any>) => {
 export const getAccountTransactionById = async (id: string) => {
   const transaction = await AccountTransaction.findById(id)
     .populate('accountId', 'name code type currency currentBalance')
+    .populate('transferredByUserId', 'name email roleCode')
     .populate('createdBy', 'name email roleCode')
     .populate('approvedBy', 'name email roleCode')
     .populate('cancelledBy', 'name email roleCode')
@@ -330,6 +344,7 @@ export const updateManualAccountTransaction = async (id: string, payload: Record
         transactionDate: payload.transactionDate || transaction!.transactionDate,
         type: payload.type || transaction!.type,
         sourceType: transaction!.sourceType,
+        subType: typeof payload.subType !== 'undefined' ? payload.subType : transaction!.subType,
         amount: typeof payload.amount !== 'undefined' ? payload.amount : transaction!.amount,
         paymentMethod: payload.paymentMethod || transaction!.paymentMethod,
         referenceType: typeof payload.referenceType !== 'undefined' ? payload.referenceType : transaction!.referenceType,
@@ -337,6 +352,12 @@ export const updateManualAccountTransaction = async (id: string, payload: Record
         description: typeof payload.description !== 'undefined' ? payload.description : transaction!.description,
         note: typeof payload.note !== 'undefined' ? payload.note : transaction!.note,
         proof: typeof payload.proof !== 'undefined' ? payload.proof : transaction!.proof,
+        transferredByUserId:
+          typeof payload.transferredByUserId !== 'undefined'
+            ? payload.transferredByUserId
+            : transaction!.transferredByUserId
+              ? String(transaction!.transferredByUserId)
+              : undefined,
         approvedBy: actorId,
       },
       actorId,
