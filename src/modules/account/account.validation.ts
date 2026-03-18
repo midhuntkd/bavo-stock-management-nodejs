@@ -29,6 +29,7 @@ export const list = validate({
     limit: Joi.number().integer().min(1).max(500),
     type: Joi.string().valid('cash', 'bank', 'wallet', 'upi', 'other'),
     isActive: Joi.string().valid('true', 'false'),
+    status: Joi.string().valid('active', 'inactive', 'all'),
     search: Joi.string(),
   }),
 });

@@ -107,7 +107,13 @@ export const listAccounts = async (query: Record<string, any>) => {
   const filter: Record<string, any> = {};
 
   if (query.type) filter.type = query.type;
-  if (typeof query.isActive !== 'undefined') filter.isActive = query.isActive === 'true';
+  if (typeof query.isActive !== 'undefined') {
+    filter.isActive = query.isActive === 'true';
+  } else if (query.status === 'active') {
+    filter.isActive = true;
+  } else if (query.status === 'inactive') {
+    filter.isActive = false;
+  }
   if (query.search) {
     filter.$or = [
       { name: { $regex: query.search, $options: 'i' } },
