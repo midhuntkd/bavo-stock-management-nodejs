@@ -7,6 +7,7 @@ export interface PermissionSeed {
 
 export const PERMISSION_SEEDS: PermissionSeed[] = [
   { name: 'Dashboard View', code: 'dashboard.view', module: 'dashboard', description: 'View dashboard summary' },
+  { name: 'Accounting Dashboard View', code: 'accounting.dashboard.view', module: 'accounting', description: 'View accounting dashboard summary' },
   { name: 'User View', code: 'user.view', module: 'user', description: 'View users' },
   { name: 'User Create', code: 'user.create', module: 'user', description: 'Create users' },
   { name: 'User Update', code: 'user.update', module: 'user', description: 'Update users' },
@@ -72,6 +73,36 @@ export const PERMISSION_SEEDS: PermissionSeed[] = [
   { name: 'Stock Adjustment View', code: 'stock-adjustment.view', module: 'stock-adjustment', description: 'View stock adjustments' },
   { name: 'Stock Adjustment Create', code: 'stock-adjustment.create', module: 'stock-adjustment', description: 'Create stock adjustments' },
   { name: 'Stock Adjustment Approve', code: 'stock-adjustment.approve', module: 'stock-adjustment', description: 'Approve stock adjustments' },
+
+  { name: 'Investment View', code: 'investment.view', module: 'investment', description: 'View investments' },
+  { name: 'Investment Create', code: 'investment.create', module: 'investment', description: 'Create investments' },
+  { name: 'Investment Update', code: 'investment.update', module: 'investment', description: 'Update investments' },
+  { name: 'Investment Delete', code: 'investment.delete', module: 'investment', description: 'Delete draft investments' },
+  { name: 'Investment Status', code: 'investment.status', module: 'investment', description: 'Confirm or cancel investments' },
+
+  { name: 'Account View', code: 'account.view', module: 'account', description: 'View company accounts' },
+  { name: 'Account Create', code: 'account.create', module: 'account', description: 'Create company accounts' },
+  { name: 'Account Update', code: 'account.update', module: 'account', description: 'Update company accounts' },
+  { name: 'Account Delete', code: 'account.delete', module: 'account', description: 'Deactivate company accounts' },
+
+  { name: 'Account Transaction View', code: 'account-transaction.view', module: 'account-transaction', description: 'View account transactions' },
+  { name: 'Account Transaction Create', code: 'account-transaction.create', module: 'account-transaction', description: 'Create account transactions' },
+  { name: 'Account Transaction Update', code: 'account-transaction.update', module: 'account-transaction', description: 'Update manual account transactions' },
+  { name: 'Account Transaction Delete', code: 'account-transaction.delete', module: 'account-transaction', description: 'Cancel manual account transactions' },
+
+  { name: 'Personal Spend View', code: 'personal-spend.view', module: 'personal-spend', description: 'View personal company spends' },
+  { name: 'Personal Spend Create', code: 'personal-spend.create', module: 'personal-spend', description: 'Create personal company spends' },
+  { name: 'Personal Spend Update', code: 'personal-spend.update', module: 'personal-spend', description: 'Update personal company spends' },
+  { name: 'Personal Spend Delete', code: 'personal-spend.delete', module: 'personal-spend', description: 'Delete personal company spends' },
+  { name: 'Personal Spend Clear', code: 'personal-spend.clear', module: 'personal-spend', description: 'Clear personal spends through reimbursement' },
+  { name: 'Personal Spend Extend', code: 'personal-spend.extend', module: 'personal-spend', description: 'Carry forward pending personal spends' },
+
+  { name: 'Reimbursement View', code: 'reimbursement.view', module: 'reimbursement', description: 'View reimbursements' },
+  { name: 'Reimbursement Create', code: 'reimbursement.create', module: 'reimbursement', description: 'Create reimbursements' },
+  { name: 'Reimbursement Update', code: 'reimbursement.update', module: 'reimbursement', description: 'Update reimbursements' },
+  { name: 'Reimbursement Approve', code: 'reimbursement.approve', module: 'reimbursement', description: 'Approve or cancel reimbursements' },
+
+  { name: 'Monthly Summary View', code: 'monthly-summary.view', module: 'accounting', description: 'View monthly accounting summaries' },
 ];
 
 export const PERMISSION_CODES = PERMISSION_SEEDS.map((permission) => permission.code);

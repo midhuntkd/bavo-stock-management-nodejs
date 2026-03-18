@@ -38,6 +38,9 @@ const envVarsSchema = Joi.object()
     GRN_PREFIX: Joi.string().default('GRN'),
     TRANSFER_PREFIX: Joi.string().default('TRN'),
     ADJUSTMENT_PREFIX: Joi.string().default('ADJ'),
+    ACCOUNT_CODE_PREFIX: Joi.string().default('ACC'),
+    INVESTMENT_PREFIX: Joi.string().default('INVST'),
+    REIMBURSEMENT_PREFIX: Joi.string().default('RMB'),
 
     AWS_REGION: Joi.string().allow(''),
     AWS_ACCESS_KEY_ID: Joi.string().allow(''),
@@ -90,6 +93,9 @@ const config = {
     grnPrefix: envVars.GRN_PREFIX,
     transferPrefix: envVars.TRANSFER_PREFIX,
     adjustmentPrefix: envVars.ADJUSTMENT_PREFIX,
+    accountCodePrefix: envVars.ACCOUNT_CODE_PREFIX,
+    investmentPrefix: envVars.INVESTMENT_PREFIX,
+    reimbursementPrefix: envVars.REIMBURSEMENT_PREFIX,
   },
   reservation: {
     defaultExpiryMinutes: envVars.RESERVATION_DEFAULT_EXPIRY_MINUTES,

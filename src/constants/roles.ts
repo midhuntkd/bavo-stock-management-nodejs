@@ -1,6 +1,7 @@
 export const SYSTEM_ROLES = {
   SUPER_ADMIN: 'super_admin',
   ADMIN: 'admin',
+  DIRECTOR: 'director',
   STAFF: 'staff',
 } as const;
 

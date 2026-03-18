@@ -14,7 +14,13 @@ import productRoute from './product.route';
 import stockBatchRoute from './stock-batch.route';
 import stockReservationRoute from './stock-reservation.route';
 import purchaseOrderRoute from './purchase-order.route';
+import accountRoute from './account.route';
+import accountTransactionRoute from './account-transaction.route';
+import accountingRoute from './accounting.route';
 import goodsReceiptNoteRoute from './goods-receipt-note.route';
+import investmentRoute from './investment.route';
+import personalSpendRoute from './personal-spend.route';
+import reimbursementRoute from './reimbursement.route';
 import stockTransferRoute from './stock-transfer.route';
 import saleInvoiceRoute from './sale-invoice.route';
 import stockAdjustmentRoute from './stock-adjustment.route';
@@ -40,7 +46,13 @@ const defaultIRoute = [
   { path: '/stock-batches', route: stockBatchRoute },
   { path: '/stock-reservations', route: stockReservationRoute },
   { path: '/purchase-orders', route: purchaseOrderRoute },
+  { path: '/accounts', route: accountRoute },
+  { path: '/account-transactions', route: accountTransactionRoute },
+  { path: '/accounting', route: accountingRoute },
   { path: '/grn', route: goodsReceiptNoteRoute },
+  { path: '/investments', route: investmentRoute },
+  { path: '/personal-spends', route: personalSpendRoute },
+  { path: '/reimbursements', route: reimbursementRoute },
   { path: '/stock-transfers', route: stockTransferRoute },
   { path: '/sale-invoices', route: saleInvoiceRoute },
   { path: '/stock-adjustments', route: stockAdjustmentRoute },
