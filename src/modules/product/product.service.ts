@@ -16,8 +16,8 @@ export const createProduct = async (payload: any) => {
     }
 
     // Auto-prefill manufacturer/category from brand if user did not pass explicit values.
-    if (!nextPayload.manufacturerId && brand.manufacturer) {
-      nextPayload.manufacturerId = brand.manufacturer;
+    if (!nextPayload.manufacturer && brand.manufacturer) {
+      nextPayload.manufacturer = brand.manufacturer;
     }
     if (!nextPayload.categoryId && brand.category) {
       nextPayload.categoryId = brand.category;
@@ -73,8 +73,8 @@ export const updateProduct = async (id: string, payload: any) => {
     if (!brand) {
       throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid brandId');
     }
-    if (!nextPayload.manufacturerId && brand.manufacturer) {
-      nextPayload.manufacturerId = brand.manufacturer;
+    if (!nextPayload.manufacturer && brand.manufacturer) {
+      nextPayload.manufacturer = brand.manufacturer;
     }
     if (!nextPayload.categoryId && brand.category) {
       nextPayload.categoryId = brand.category;

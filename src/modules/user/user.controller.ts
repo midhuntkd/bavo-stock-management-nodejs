@@ -27,6 +27,11 @@ export const resetPassword: RequestHandler = catchAsync(async (req, res) => {
   sendSuccess(res, 'User password reset successfully', data);
 });
 
+export const resetPasswordByEmail: RequestHandler = catchAsync(async (req, res) => {
+  const data = await UserService.resetUserPasswordByEmail(req.body, String(req.user?._id));
+  sendSuccess(res, 'User password reset and emailed successfully', data);
+});
+
 export const changeMyPassword: RequestHandler = catchAsync(async (req, res) => {
   const data = await UserService.changeOwnPassword(String(req.user?._id), req.body);
   sendSuccess(res, 'Password changed successfully', data);

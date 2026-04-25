@@ -8,7 +8,7 @@ const productSchema = new Schema<IProductDoc, IProductModel>(
     sku: { type: String, required: true, trim: true, uppercase: true, unique: true },
     barcode: { type: String, trim: true },
     categoryId: { type: String, trim: true },
-    manufacturerId: { type: String, trim: true },
+    manufacturer: { type: String, trim: true },
     brandId: { type: Schema.Types.ObjectId, ref: 'Brand', index: true },
     unit: { type: String, enum: ['g', 'kg', 'ml', 'l', 'pc', 'pack', 'box'], required: true },
     packSize: { type: String, trim: true },

@@ -155,15 +155,17 @@ router.get('/me', authenticate, AuthController.me);
  *         application/json:
  *           schema:
  *             type: object
- *             required: [currentPassword, newPassword]
+ *             description: Accepts either `previousPassword` + `currentPassword` or legacy `currentPassword` + `newPassword`.
  *             properties:
+ *               previousPassword:
+ *                 type: string
  *               currentPassword:
  *                 type: string
  *               newPassword:
  *                 type: string
  *           example:
- *             currentPassword: "Admin@123456"
- *             newPassword: "Admin@654321"
+ *             previousPassword: "Admin@123456"
+ *             currentPassword: "Admin@654321"
  *     responses:
  *       200:
  *         description: Password changed

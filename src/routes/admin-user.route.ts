@@ -176,4 +176,36 @@ router.patch(
   UserController.resetPassword
 );
 
+/**
+ * @openapi
+ * /admin-users/reset-password:
+ *   post:
+ *     tags: [Users]
+ *     summary: Reset user password by email and send it on email
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *           example:
+ *             email: "ops.admin@example.com"
+ *     responses:
+ *       200:
+ *         description: Password reset email sent
+ */
+router.post(
+  '/reset-password',
+  authorizePermissions('user.update'),
+  UserValidator.resetPasswordByEmail,
+  UserController.resetPasswordByEmail
+);
+
 export default router;

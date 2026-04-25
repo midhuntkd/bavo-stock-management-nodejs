@@ -22,7 +22,7 @@ router.use(authenticate, authorizeRoles('super_admin', 'admin', 'staff'));
  *             slug: "milk-500ml"
  *             sku: "MILK-500"
  *             brandId: "67d12f40f3f7fdb2e0b18b40"
- *             manufacturerId: "Unilever"
+ *             manufacturer: "Unilever"
  *             categoryId: "Dairy"
  *             unit: "pc"
  *             gstRate: 5
@@ -89,7 +89,7 @@ router.get('/:id', authorizePermissions('product.view'), ProductValidator.idPara
  *             salePrice: 37
  *             costPrice: 31
  *             brandId: "67d12f40f3f7fdb2e0b18b40"
- *             manufacturerId: "Unilever India"
+ *             manufacturer: "Unilever India"
  *             isActive: true
  *     responses:
  *       200:

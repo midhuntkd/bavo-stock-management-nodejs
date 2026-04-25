@@ -44,10 +44,28 @@ export const resetPassword = validate({
   body: Joi.object({ password: Joi.string().min(8).required() }),
 });
 
+export const resetPasswordByEmail = validate({
+  body: Joi.object({
+    email: Joi.string().email().required(),
+  }),
+});
+
 export const changePassword = validate({
   body: Joi.object({
+    previousPassword: Joi.string(),
     currentPassword: Joi.string().required(),
-    newPassword: Joi.string().min(8).required(),
+    newPassword: Joi.string().min(8),
+  }).custom((value, helpers) => {
+    const hasPreviousFormat = typeof value.previousPassword === 'string' && !value.newPassword;
+    const hasLegacyFormat = typeof value.newPassword === 'string' && !value.previousPassword;
+
+    if (!hasPreviousFormat && !hasLegacyFormat) {
+      return helpers.error('any.invalid');
+    }
+
+    return value;
+  }, 'change password payload validation').messages({
+    'any.invalid': 'Pass either previousPassword + currentPassword or currentPassword + newPassword',
   }),
 });
 

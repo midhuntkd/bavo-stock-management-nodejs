@@ -1,9 +1,11 @@
 import httpStatus from 'http-status';
+import { randomInt } from 'crypto';
 import { Types } from 'mongoose';
 import ApiError from '../errors/ApiError';
 import { Role, RoleService } from '../role';
+import { sendMail } from '../utils';
 import User from './user.model';
-import { ChangePasswordDTO, CreateUserDTO, ResetPasswordDTO, UpdateUserDTO } from './user.types';
+import { ChangePasswordDTO, CreateUserDTO, ResetPasswordByEmailDTO, ResetPasswordDTO, UpdateUserDTO } from './user.types';
 
 const sanitizeUser = (user: any) => ({
   _id: String(user._id),
@@ -37,6 +39,32 @@ const normalizePermissionCodes = (payload: Pick<CreateUserDTO, 'permissions' | '
   const arrayPermissions = Array.isArray(payload.permissions) ? payload.permissions : [];
 
   return [...new Set([...arrayPermissions, ...csvPermissions].map((code) => code.trim().toLowerCase()).filter(Boolean))];
+};
+
+const buildRandomPassword = (length = 12) => {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnopqrstuvwxyz';
+  const digits = '23456789';
+  const symbols = '@#$%&*!?';
+  const all = `${upper}${lower}${digits}${symbols}`;
+
+  const chars = [
+    upper[randomInt(upper.length)],
+    lower[randomInt(lower.length)],
+    digits[randomInt(digits.length)],
+    symbols[randomInt(symbols.length)],
+  ];
+
+  while (chars.length < length) {
+    chars.push(all[randomInt(all.length)]);
+  }
+
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.join('');
 };
 
 export const createUser = async (payload: CreateUserDTO, actorId: string) => {
@@ -133,22 +161,72 @@ export const updateUser = async (id: string, payload: UpdateUserDTO, actorId: st
 export const resetUserPassword = async (id: string, payload: ResetPasswordDTO, actorId: string) => {
   const user = await User.findById(id);
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  if (user.roleCode === 'super_admin') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Super admin password cannot be reset from this API');
+  }
   user.password = payload.password;
   user.updatedBy = new Types.ObjectId(actorId);
   await user.save();
   return { _id: String(user._id) };
 };
 
+export const resetUserPasswordByEmail = async (payload: ResetPasswordByEmailDTO, actorId: string) => {
+  const email = payload.email.trim().toLowerCase();
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (user.roleCode === 'super_admin') {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Super admin password cannot be reset from this API');
+  }
+
+  const generatedPassword = buildRandomPassword();
+  const previousHashedPassword = user.password;
+
+  user.password = generatedPassword;
+  user.updatedBy = new Types.ObjectId(actorId);
+  await user.save();
+
+  try {
+    await sendMail({
+      to: user.email,
+      subject: `${user.name || 'User'} password reset`,
+      text: `Hello ${user.name || 'User'}, your password has been reset. Your new temporary password is: ${generatedPassword}`,
+      html: `
+        <p>Hello ${user.name || 'User'},</p>
+        <p>Your password has been reset by the administrator.</p>
+        <p>Your new temporary password is:</p>
+        <p><strong>${generatedPassword}</strong></p>
+        <p>Please sign in and change this password immediately.</p>
+      `,
+    });
+  } catch (error) {
+    await User.updateOne(
+      { _id: user._id },
+      { password: previousHashedPassword, updatedBy: new Types.ObjectId(actorId) }
+    );
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Password reset email could not be sent');
+  }
+
+  return { _id: String(user._id), email: user.email };
+};
+
 export const changeOwnPassword = async (userId: string, payload: ChangePasswordDTO) => {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
 
-  const matched = await user.isPasswordMatch(payload.currentPassword);
+  const oldPassword = payload.previousPassword ?? payload.currentPassword;
+  const nextPassword = payload.newPassword ?? payload.currentPassword;
+
+  const matched = await user.isPasswordMatch(oldPassword);
   if (!matched) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Current password is incorrect');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Previous password is incorrect');
   }
 
-  user.password = payload.newPassword;
+  user.password = nextPassword;
+  user.updatedBy = new Types.ObjectId(userId);
   await user.save();
   return { _id: String(user._id) };
 };

@@ -23,7 +23,12 @@ export interface ResetPasswordDTO {
   password: string;
 }
 
+export interface ResetPasswordByEmailDTO {
+  email: string;
+}
+
 export interface ChangePasswordDTO {
+  previousPassword?: string;
   currentPassword: string;
-  newPassword: string;
+  newPassword?: string;
 }
