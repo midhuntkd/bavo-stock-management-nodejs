@@ -9,13 +9,18 @@ import { httpLogger } from './modules/logger';
 
 const app: Express = express();
 
-const allowedOrigins = config.corsOrigin.split(',').map((origin: string) => origin.trim()).filter(Boolean);
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/+$/, '');
+
+const allowedOrigins = config.corsOrigin
+  .split(',')
+  .map((origin: string) => normalizeOrigin(origin))
+  .filter(Boolean);
 
 app.use(helmet());
 app.use(
   cors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(normalizeOrigin(origin))) {
         return callback(null, true);
       }
       return callback(new Error('Not allowed by CORS'));

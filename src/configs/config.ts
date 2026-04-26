@@ -7,7 +7,7 @@ const envVarsSchema = Joi.object()
     PORT: Joi.number().default(4000),
 
     APP_NAME: Joi.string().default('Bavo Stock'),
-    APP_BASE_URL: Joi.string().default('http://localhost:4000'),
+    APP_BASE_URL: Joi.string().default('https://stockapi.bavoapp.in/'),
 
     MONGODB_URI: Joi.string().required(),
 
