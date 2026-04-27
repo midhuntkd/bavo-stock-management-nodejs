@@ -10,7 +10,7 @@ interface SendMailOptions {
 }
 
 const getTransporter = () => {
-  if (!config.smtp.host || !config.smtp.user || !config.smtp.pass || !config.smtp.fromEmail) {
+  if (!config.smtp.host || !config.smtp.user || !config.smtp.pass) {
     throw new ApiError(500, 'SMTP mail settings are not configured');
   }
 
@@ -27,9 +27,10 @@ const getTransporter = () => {
 
 export const sendMail = async ({ to, subject, html, text }: SendMailOptions) => {
   const transporter = getTransporter();
+  const fromEmail = config.smtp.fromEmail || config.smtp.user;
 
   await transporter.sendMail({
-    from: `"${config.smtp.fromName}" <${config.smtp.fromEmail}>`,
+    from: `"${config.smtp.fromName}" <${fromEmail}>`,
     to,
     subject,
     html,

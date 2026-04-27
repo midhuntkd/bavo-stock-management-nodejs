@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import { randomInt } from 'crypto';
 import { Types } from 'mongoose';
 import ApiError from '../errors/ApiError';
+import logger from '../logger/logger';
 import { Role, RoleService } from '../role';
 import { sendMail } from '../utils';
 import User from './user.model';
@@ -202,12 +203,18 @@ export const resetUserPasswordByEmail = async (payload: ResetPasswordByEmailDTO,
         <p>Please sign in and change this password immediately.</p>
       `,
     });
-  } catch (error) {
+  } catch (error: any) {
     await User.updateOne(
       { _id: user._id },
       { password: previousHashedPassword, updatedBy: new Types.ObjectId(actorId) }
     );
-    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Password reset email could not be sent');
+
+    const mailErrorMessage = error instanceof Error ? error.message : 'Unknown SMTP error';
+    logger.error(`Password reset email failed for ${user.email}: ${mailErrorMessage}`);
+
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Password reset email could not be sent', true, {
+      cause: mailErrorMessage,
+    });
   }
 
   return { _id: String(user._id), email: user.email };
