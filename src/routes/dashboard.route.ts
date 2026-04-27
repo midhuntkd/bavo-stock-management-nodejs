@@ -33,6 +33,12 @@ const router = Router();
  *                 totalInHouseInvoices: 40
  *                 todayStockMovementsCount: 312
  */
-router.get('/summary', authenticate, authorizeRoles('super_admin', 'admin', 'staff'), authorizePermissions('dashboard.view'), DashboardController.summary);
+router.get(
+  '/summary',
+  authenticate,
+  authorizeRoles('super_admin', 'admin', 'director', 'staff'),
+  authorizePermissions('dashboard.view'),
+  DashboardController.summary
+);
 
 export default router;
