@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { authenticate, authorizePermissions } from '../modules/auth';
 import { uploadImage } from '../middlewares/upload.middleware';
 import { PersonalSpendController, PersonalSpendValidator } from '../modules/personal-spend';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin', 'director', 'staff'));
+router.use(authenticate);
 
 router.post('/', authorizePermissions('personal-spend.create'), uploadImage.single('proof'), PersonalSpendValidator.create, PersonalSpendController.create);
 router.get('/', authorizePermissions('personal-spend.view'), PersonalSpendValidator.list, PersonalSpendController.list);

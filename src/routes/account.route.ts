@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { authenticate, authorizePermissions } from '../modules/auth';
 import { AccountController, AccountValidator } from '../modules/account';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin', 'director'));
+router.use(authenticate);
 
 router.post('/', authorizePermissions('account.create'), AccountValidator.create, AccountController.create);
 router.get('/', authorizePermissions('account.view'), AccountValidator.list, AccountController.list);

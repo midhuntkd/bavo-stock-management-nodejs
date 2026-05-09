@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { authenticate, authorizePermissions } from '../modules/auth';
 import { uploadImage } from '../middlewares/upload.middleware';
 import { CompanyExpenseController, CompanyExpenseValidator } from '../modules/company-expense';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin', 'director'));
+router.use(authenticate);
 
 router.post(
   '/',

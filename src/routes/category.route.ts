@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { authenticate, authorizePermissions } from '../modules/auth';
 import { CategoryController, CategoryValidator } from '../modules/category';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin', 'staff'));
+router.use(authenticate);
 
 /**
  * @openapi

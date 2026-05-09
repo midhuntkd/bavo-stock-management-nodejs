@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { authenticate, authorizePermissions } from '../modules/auth';
 import { uploadImage } from '../middlewares/upload.middleware';
 import { ReimbursementController, ReimbursementValidator } from '../modules/reimbursement';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin', 'director'));
+router.use(authenticate);
 
 router.post('/', authorizePermissions('reimbursement.create', 'personal-spend.clear'), uploadImage.single('proof'), ReimbursementValidator.create, ReimbursementController.create);
 router.get('/', authorizePermissions('reimbursement.view'), ReimbursementValidator.list, ReimbursementController.list);

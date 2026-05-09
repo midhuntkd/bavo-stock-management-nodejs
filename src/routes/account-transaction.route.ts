@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { authenticate, authorizePermissions, authorizeRoles } from '../modules/auth';
+import { authenticate, authorizePermissions } from '../modules/auth';
 import { uploadImage } from '../middlewares/upload.middleware';
 import { AccountTransactionController, AccountTransactionValidator } from '../modules/account-transaction';
 
 const router = Router();
 
-router.use(authenticate, authorizeRoles('super_admin', 'admin', 'director'));
+router.use(authenticate);
 
 router.post('/', authorizePermissions('account-transaction.create'), uploadImage.single('proof'), AccountTransactionValidator.create, AccountTransactionController.create);
 router.get('/', authorizePermissions('account-transaction.view'), AccountTransactionValidator.list, AccountTransactionController.list);
