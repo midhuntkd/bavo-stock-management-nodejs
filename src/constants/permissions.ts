@@ -39,6 +39,11 @@ export const PERMISSION_SEEDS: PermissionSeed[] = [
   { name: 'Brand Update', code: 'brand.update', module: 'brand', description: 'Update brands' },
   { name: 'Brand Status', code: 'brand.status', module: 'brand', description: 'Activate/deactivate brands' },
 
+  { name: 'Category View', code: 'category.view', module: 'category', description: 'View categories' },
+  { name: 'Category Create', code: 'category.create', module: 'category', description: 'Create categories' },
+  { name: 'Category Update', code: 'category.update', module: 'category', description: 'Update categories' },
+  { name: 'Category Delete', code: 'category.delete', module: 'category', description: 'Update category status or mark deleted' },
+
   { name: 'Product View', code: 'product.view', module: 'product', description: 'View products' },
   { name: 'Product Create', code: 'product.create', module: 'product', description: 'Create products' },
   { name: 'Product Update', code: 'product.update', module: 'product', description: 'Update products' },

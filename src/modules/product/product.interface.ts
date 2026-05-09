@@ -11,6 +11,9 @@ export interface IProduct {
   manufacturer?: string;
   brandId?: Types.ObjectId;
   unit: ProductUnit;
+  unitMeasurement?: string;
+  unitValue?: number;
+  availableQuantity?: number;
   packSize?: string;
   hsnCode?: string;
   gstRate: number;

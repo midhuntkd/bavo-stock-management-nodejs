@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import httpStatus from 'http-status';
 import ApiError from '../errors/ApiError';
+import logger from '../logger/logger';
 import { RoleService } from '../role';
 import * as TokenService from '../token/token.service';
 import * as UserService from '../user/user.service';
@@ -19,6 +20,21 @@ const getBearerToken = (req: Request) => {
   // Some clients accidentally send quoted tokens: Bearer "eyJ..."
   token = token.replace(/^"+|"+$/g, '');
   return token || null;
+};
+
+const isAuthDebugEnabled = () => process.env.AUTH_DEBUG === 'true';
+
+const logAuthDebug = (req: Request, payload: Record<string, unknown>) => {
+  if (!isAuthDebugEnabled()) return;
+
+  logger.debug(
+    JSON.stringify({
+      scope: 'auth',
+      method: req.method,
+      path: req.originalUrl || req.path,
+      ...payload,
+    })
+  );
 };
 
 export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
@@ -51,6 +67,15 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
       isActive: user.isActive,
     } as any;
 
+    logAuthDebug(req, {
+      stage: 'authenticate',
+      userId: String(user._id),
+      roleId: String(user.roleId),
+      roleCode: user.roleCode,
+      directPermissions: user.permissions || [],
+      effectivePermissions,
+    });
+
     return next();
   } catch (error: any) {
     if (error?.name === 'TokenExpiredError') {
@@ -69,6 +94,14 @@ export const authorizeRoles = (...allowedRoleCodes: string[]) =>
       return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication required'));
     }
     if (!allowedRoleCodes.includes(req.user.roleCode)) {
+      logAuthDebug(req, {
+        stage: 'authorizeRoles',
+        failureReason: 'role_not_allowed',
+        allowedRoleCodes,
+        userId: req.user._id,
+        roleCode: req.user.roleCode,
+        effectivePermissions: (req.user as any).effectivePermissions || [],
+      });
       return next(new ApiError(httpStatus.FORBIDDEN, 'Forbidden: insufficient role permission'));
     }
     return next();
@@ -86,6 +119,14 @@ export const authorizePermissions = (...requiredPermissions: string[]) =>
     const hasAllPermissions = requiredPermissions.every((permission) => effectivePermissions.includes(permission));
 
     if (!hasAllPermissions) {
+      logAuthDebug(req, {
+        stage: 'authorizePermissions',
+        failureReason: 'missing_required_permission',
+        requiredPermissions,
+        userId: req.user._id,
+        roleCode: req.user.roleCode,
+        effectivePermissions,
+      });
       return next(new ApiError(httpStatus.FORBIDDEN, 'Forbidden: permission denied'));
     }
 

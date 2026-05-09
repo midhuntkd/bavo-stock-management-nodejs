@@ -25,6 +25,9 @@ router.use(authenticate, authorizeRoles('super_admin', 'admin', 'staff'));
  *             manufacturer: "Unilever"
  *             categoryId: "Dairy"
  *             unit: "pc"
+ *             unitMeasurement: "ml"
+ *             unitValue: 500
+ *             availableQuantity: 120
  *             gstRate: 5
  *             mrp: 40
  *             salePrice: 36
@@ -88,6 +91,9 @@ router.get('/:id', authorizePermissions('product.view'), ProductValidator.idPara
  *           example:
  *             salePrice: 37
  *             costPrice: 31
+ *             unitMeasurement: "ml"
+ *             unitValue: 500
+ *             availableQuantity: 140
  *             brandId: "67d12f40f3f7fdb2e0b18b40"
  *             manufacturer: "Unilever India"
  *             isActive: true

@@ -8,6 +8,7 @@ import stockMovementRoute from './stock-movement.route';
 import dashboardRoute from './dashboard.route';
 import roleRoute from './role.route';
 import brandRoute from './brand.route';
+import categoryRoute from './category.route';
 import warehouseLocationRoute from './warehouse-location.route';
 import supplierRoute from './supplier.route';
 import productRoute from './product.route';
@@ -41,6 +42,7 @@ const defaultIRoute = [
   { path: '/dashboard', route: dashboardRoute },
   { path: '/roles', route: roleRoute },
   { path: '/brands', route: brandRoute },
+  { path: '/categories', route: categoryRoute },
   { path: '/warehouse-locations', route: warehouseLocationRoute },
   { path: '/suppliers', route: supplierRoute },
   { path: '/products', route: productRoute },
