@@ -8,6 +8,7 @@ export interface IProduct {
   sku: string;
   barcode?: string;
   categoryId?: string;
+  category?: string;
   manufacturer?: string;
   brandId?: Types.ObjectId;
   unit: ProductUnit;

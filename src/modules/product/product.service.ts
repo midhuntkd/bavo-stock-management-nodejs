@@ -85,10 +85,25 @@ const normalizeImportProduct = (item: Record<string, any>) => {
   };
 };
 
+const normalizeCategoryAlias = (payload: Record<string, any>) => {
+  const nextPayload = { ...payload };
+  const category =
+    typeof nextPayload.category === 'string' && nextPayload.category.trim() ? nextPayload.category.trim() : undefined;
+  const categoryId =
+    typeof nextPayload.categoryId === 'string' && nextPayload.categoryId.trim() ? nextPayload.categoryId.trim() : undefined;
+
+  if (category && !categoryId) {
+    nextPayload.categoryId = category;
+  }
+
+  delete nextPayload.category;
+  return nextPayload;
+};
+
 export const createProduct = async (payload: any) => {
   const slug = payload.slug.trim().toLowerCase();
   const sku = payload.sku.trim().toUpperCase();
-  const nextPayload = { ...payload };
+  const nextPayload = normalizeCategoryAlias(payload);
 
   if (nextPayload.brandId) {
     const brand = await BrandService.getBrandByIdLean(String(nextPayload.brandId));
@@ -145,7 +160,7 @@ export const getProductById = async (id: string) => {
 };
 
 export const updateProduct = async (id: string, payload: any) => {
-  const nextPayload = { ...payload };
+  const nextPayload = normalizeCategoryAlias(payload);
   if (nextPayload.slug) nextPayload.slug = nextPayload.slug.trim().toLowerCase();
   if (nextPayload.sku) nextPayload.sku = nextPayload.sku.trim().toUpperCase();
 

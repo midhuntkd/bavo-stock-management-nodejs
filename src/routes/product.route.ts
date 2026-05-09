@@ -61,6 +61,7 @@ router.post('/import', authorizePermissions('product.create'), uploadJson.single
  *             sku: "MILK-500"
  *             brandId: "67d12f40f3f7fdb2e0b18b40"
  *             manufacturer: "Unilever"
+ *             category: "Dairy"
  *             categoryId: "Dairy"
  *             unit: "pc"
  *             unitMeasurement: "ml"
@@ -132,6 +133,7 @@ router.get('/:id', authorizePermissions('product.view'), ProductValidator.idPara
  *             unitMeasurement: "ml"
  *             unitValue: 500
  *             availableQuantity: 140
+ *             category: "Dairy"
  *             brandId: "67d12f40f3f7fdb2e0b18b40"
  *             manufacturer: "Unilever India"
  *             isActive: true
