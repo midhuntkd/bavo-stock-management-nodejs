@@ -1,6 +1,10 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import config from '../../configs/config';
 
+const swaggerServerUrl = config.appBaseUrl.replace(/\/+$/, '').endsWith('/api/v1')
+  ? config.appBaseUrl.replace(/\/+$/, '')
+  : `${config.appBaseUrl.replace(/\/+$/, '')}/api/v1`;
+
 const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
@@ -11,7 +15,7 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: config.appBaseUrl,
+        url: swaggerServerUrl,
       },
     ],
     paths: {
