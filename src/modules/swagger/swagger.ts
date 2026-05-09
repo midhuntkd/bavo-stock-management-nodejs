@@ -1,4 +1,5 @@
 import swaggerJSDoc from 'swagger-jsdoc';
+import config from '../../configs/config';
 
 const options: swaggerJSDoc.Options = {
   definition: {
@@ -8,6 +9,11 @@ const options: swaggerJSDoc.Options = {
       version: '1.0.0',
       description: 'Production-grade quick-commerce warehouse API',
     },
+    servers: [
+      {
+        url: config.appBaseUrl,
+      },
+    ],
     paths: {
       '/auth/login': { post: { tags: ['Auth'], summary: 'Login' } },
       '/auth/refresh-tokens': { post: { tags: ['Auth'], summary: 'Refresh tokens' } },

@@ -1,10 +1,48 @@
 import { Router } from 'express';
 import { authenticate, authorizePermissions } from '../modules/auth';
+import { uploadJson } from '../middlewares/upload.middleware';
 import { ProductController, ProductValidator } from '../modules/product';
 
 const router = Router();
 
 router.use(authenticate);
+
+/**
+ * @openapi
+ * /products/import:
+ *   post:
+ *     tags: [Products]
+ *     summary: Import products from JSON
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *         application/json:
+ *           example:
+ *             products:
+ *               - name: "Cut Mango Pickle 500 g"
+ *                 slug: "cut-mango-pickle-500-g"
+ *                 sku: "DH-CMP-500"
+ *                 price: 107
+ *                 quantity: 120
+ *                 unit: "g"
+ *                 unitMeasurement: "weight"
+ *                 unitValue: 500
+ *                 status: "Inactive"
+ *                 parentCategory:
+ *                   - { "$oid": "694e9b9ff41d91150b976a5d" }
+ *     responses:
+ *       201:
+ *         description: Products imported
+ */
+router.post('/import', authorizePermissions('product.create'), uploadJson.single('file'), ProductController.importJson);
 
 /**
  * @openapi

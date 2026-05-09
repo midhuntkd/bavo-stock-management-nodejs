@@ -12,10 +12,29 @@ const imageFileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   cb(null, true);
 };
 
+const jsonFileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  const allowedMimeTypes = ['application/json', 'text/json', 'text/plain', 'application/octet-stream'];
+  const hasJsonExtension = file.originalname.toLowerCase().endsWith('.json');
+
+  if (!allowedMimeTypes.includes(file.mimetype) && !hasJsonExtension) {
+    cb(new ApiError(httpStatus.BAD_REQUEST, 'Only JSON files are allowed'));
+    return;
+  }
+  cb(null, true);
+};
+
 export const uploadImage = multer({
   storage,
   fileFilter: imageFileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024,
+  },
+});
+
+export const uploadJson = multer({
+  storage,
+  fileFilter: jsonFileFilter,
+  limits: {
+    fileSize: 20 * 1024 * 1024,
   },
 });
