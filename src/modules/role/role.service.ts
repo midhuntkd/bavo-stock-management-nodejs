@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import ApiError from '../errors/ApiError';
-import { Permission } from '../permission';
+import { Permission, PermissionService } from '../permission';
 import Role from './role.model';
 import RolePermission from './role-permission.model';
 
@@ -61,10 +61,14 @@ export const setRolePermissions = async (roleId: string, permissionCodes: string
   if (!role) throw new ApiError(httpStatus.NOT_FOUND, 'Role not found');
 
   const normalizedCodes = [...new Set(permissionCodes.map((code) => code.trim().toLowerCase()))];
-  const permissions = await Permission.find({ code: { $in: normalizedCodes }, isActive: true });
-  if (permissions.length !== normalizedCodes.length) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Some permission codes are invalid');
+  const { unknown } = await PermissionService.validatePermissionCodes(normalizedCodes);
+  if (unknown.length) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      `Some permission codes are invalid: ${unknown.join(', ')}`
+    );
   }
+  const permissions = await Permission.find({ code: { $in: normalizedCodes }, isActive: true });
 
   await RolePermission.deleteMany({ roleId: role._id });
   if (permissions.length) {

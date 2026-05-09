@@ -111,7 +111,7 @@ router.patch('/:id', authorizePermissions('role.update'), RoleValidator.idParam,
  *       content:
  *         application/json:
  *           example:
- *             permissionCodes: ["stock.view", "stock.update", "sale-invoice.view"]
+ *             permissionCodes: ["stock.view", "supplier.view", "category.view", "sale-invoice.view"]
  *     responses:
  *       200:
  *         description: Role permissions updated
