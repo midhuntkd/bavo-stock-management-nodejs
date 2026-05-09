@@ -35,6 +35,7 @@ export const list = validate({
     supplierId: objectId,
     manufacturer: Joi.string(),
     isActive: Joi.string().valid('true', 'false'),
+    status: Joi.string().lowercase().valid('active', 'inactive'),
   }),
 });
 

@@ -55,6 +55,9 @@ router.post('/', authorizePermissions('brand.create'), uploadImage.single('logo'
  *       - in: query
  *         name: isActive
  *         schema: { type: string, enum: ["true", "false"] }
+ *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: ["active", "inactive"] }
  *     responses:
  *       200:
  *         description: Brands fetched

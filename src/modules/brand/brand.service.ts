@@ -47,6 +47,7 @@ export const listBrands = async (query: Record<string, any>) => {
   if (query.supplierId) filter.supplierId = query.supplierId;
   if (query.manufacturer) filter.manufacturer = { $regex: query.manufacturer, $options: 'i' };
   if (typeof query.isActive !== 'undefined') filter.isActive = query.isActive === 'true';
+  if (typeof query.status !== 'undefined') filter.isActive = query.status === 'active';
   if (query.search) {
     filter.$or = [
       { name: { $regex: query.search, $options: 'i' } },
