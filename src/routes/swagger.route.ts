@@ -16,6 +16,14 @@ const router = Router();
  *         description: Swagger UI page.
  */
 router.use('/', swaggerUi.serve);
-router.get('/', swaggerUi.setup(swaggerSpec));
+router.get('/', (req, res, next) => {
+  const runtimeServerUrl = `${req.protocol}://${req.get('host')}/api/v1`;
+  const spec = {
+    ...swaggerSpec,
+    servers: [{ url: runtimeServerUrl }],
+  };
+
+  return swaggerUi.setup(spec)(req, res, next);
+});
 
 export default router;
