@@ -87,6 +87,31 @@ router.post('/', authorizePermissions('product.create'), ProductValidator.create
  *     tags: [Products]
  *     summary: List products
  *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *       - in: query
+ *         name: brandId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: categoryId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: category
+ *         schema: { type: string }
+ *       - in: query
+ *         name: barcode
+ *         schema: { type: string }
+ *       - in: query
+ *         name: isActive
+ *         schema: { type: string, enum: ["true", "false"] }
+ *       - in: query
+ *         name: batchEnabled
+ *         schema: { type: string, enum: ["true", "false"] }
+ *       - in: query
+ *         name: expiryEnabled
+ *         schema: { type: string, enum: ["true", "false"] }
  *     responses:
  *       200:
  *         description: Products fetched

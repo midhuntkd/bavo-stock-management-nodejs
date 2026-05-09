@@ -1,7 +1,9 @@
 import httpStatus from 'http-status';
+import { Types } from 'mongoose';
 import ApiError from '../errors/ApiError';
 import { getPagination } from '../utils';
 import { BrandService } from '../brand';
+import { Category } from '../category';
 import Product from './product.model';
 
 const allowedUnits = new Set(['g', 'kg', 'ml', 'l', 'pc', 'pack', 'box']);
@@ -87,10 +89,8 @@ const normalizeImportProduct = (item: Record<string, any>) => {
 
 const normalizeCategoryAlias = (payload: Record<string, any>) => {
   const nextPayload = { ...payload };
-  const category =
-    typeof nextPayload.category === 'string' && nextPayload.category.trim() ? nextPayload.category.trim() : undefined;
-  const categoryId =
-    typeof nextPayload.categoryId === 'string' && nextPayload.categoryId.trim() ? nextPayload.categoryId.trim() : undefined;
+  const category = extractOid(nextPayload.category);
+  const categoryId = extractOid(nextPayload.categoryId);
 
   if (category && !categoryId) {
     nextPayload.categoryId = category;
@@ -100,10 +100,41 @@ const normalizeCategoryAlias = (payload: Record<string, any>) => {
   return nextPayload;
 };
 
+const serializeProduct = (product: any) => {
+  if (!product) return product;
+
+  const normalized = typeof product.toObject === 'function' ? product.toObject() : { ...product };
+
+  return {
+    ...normalized,
+    categoryId: normalized.categoryId ?? null,
+    brandId: normalized.brandId ?? null,
+  };
+};
+
+const shapePopulatedProduct = (product: any) => {
+  const normalized = serializeProduct(product);
+
+  return {
+    ...normalized,
+    brand: normalized.brandId || null,
+    category: normalized.categoryId || null,
+  };
+};
+
+const ensureCategoryExists = async (categoryId?: string) => {
+  if (!categoryId) return;
+  const category = await Category.findById(categoryId).lean();
+  if (!category) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid categoryId');
+  }
+};
+
 export const createProduct = async (payload: any) => {
   const slug = payload.slug.trim().toLowerCase();
   const sku = payload.sku.trim().toUpperCase();
   const nextPayload = normalizeCategoryAlias(payload);
+  await ensureCategoryExists(nextPayload.categoryId);
 
   if (nextPayload.brandId) {
     const brand = await BrandService.getBrandByIdLean(String(nextPayload.brandId));
@@ -115,22 +146,32 @@ export const createProduct = async (payload: any) => {
     if (!nextPayload.manufacturer && brand.manufacturer) {
       nextPayload.manufacturer = brand.manufacturer;
     }
-    if (!nextPayload.categoryId && brand.category) {
-      nextPayload.categoryId = brand.category;
-    }
   }
 
   if (await Product.findOne({ $or: [{ slug }, { sku }] })) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Product with same slug or sku already exists');
   }
 
-  return Product.create({ ...nextPayload, slug, sku });
+  const created = await Product.create({
+    ...nextPayload,
+    ...(nextPayload.categoryId ? { categoryId: new Types.ObjectId(String(nextPayload.categoryId)) } : {}),
+    slug,
+    sku,
+  });
+  const doc = await Product.findById(created._id)
+    .populate('brandId', 'name code slug manufacturer category logo isActive')
+    .populate('categoryId', 'name slug status pageKey');
+  return shapePopulatedProduct(doc);
 };
 
 export const listProducts = async (query: Record<string, any>) => {
   const { page, limit, skip } = getPagination(query);
   const filter: any = {};
 
+  const categoryId = extractOid(query.category) || extractOid(query.categoryId);
+  if (query.brandId) filter.brandId = query.brandId;
+  if (categoryId) filter.categoryId = categoryId;
+  if (query.barcode) filter.barcode = query.barcode;
   if (typeof query.isActive !== 'undefined') filter.isActive = query.isActive === 'true';
   if (typeof query.batchEnabled !== 'undefined') filter.batchEnabled = query.batchEnabled === 'true';
   if (typeof query.expiryEnabled !== 'undefined') filter.expiryEnabled = query.expiryEnabled === 'true';
@@ -143,26 +184,34 @@ export const listProducts = async (query: Record<string, any>) => {
   }
 
   const [items, totalItems] = await Promise.all([
-    Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Product.find(filter)
+      .populate('brandId', 'name code slug manufacturer category logo isActive')
+      .populate('categoryId', 'name slug status pageKey')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
     Product.countDocuments(filter),
   ]);
 
   return {
-    items,
+    items: items.map(shapePopulatedProduct),
     pagination: { page, limit, totalItems, totalPages: Math.ceil(totalItems / limit) || 1 },
   };
 };
 
 export const getProductById = async (id: string) => {
-  const doc = await Product.findById(id);
+  const doc = await Product.findById(id)
+    .populate('brandId', 'name code slug manufacturer category logo isActive')
+    .populate('categoryId', 'name slug status pageKey');
   if (!doc) throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
-  return doc;
+  return shapePopulatedProduct(doc);
 };
 
 export const updateProduct = async (id: string, payload: any) => {
   const nextPayload = normalizeCategoryAlias(payload);
   if (nextPayload.slug) nextPayload.slug = nextPayload.slug.trim().toLowerCase();
   if (nextPayload.sku) nextPayload.sku = nextPayload.sku.trim().toUpperCase();
+  await ensureCategoryExists(nextPayload.categoryId);
 
   if (nextPayload.brandId) {
     const brand = await BrandService.getBrandByIdLean(String(nextPayload.brandId));
@@ -171,9 +220,6 @@ export const updateProduct = async (id: string, payload: any) => {
     }
     if (!nextPayload.manufacturer && brand.manufacturer) {
       nextPayload.manufacturer = brand.manufacturer;
-    }
-    if (!nextPayload.categoryId && brand.category) {
-      nextPayload.categoryId = brand.category;
     }
   }
 
@@ -188,15 +234,26 @@ export const updateProduct = async (id: string, payload: any) => {
     if (duplicate) throw new ApiError(httpStatus.BAD_REQUEST, 'Product with same slug or sku already exists');
   }
 
-  const doc = await Product.findByIdAndUpdate(id, nextPayload, { new: true, runValidators: true });
+  const updateDoc = {
+    ...nextPayload,
+    ...(Object.prototype.hasOwnProperty.call(nextPayload, 'categoryId')
+      ? { categoryId: nextPayload.categoryId ? new Types.ObjectId(String(nextPayload.categoryId)) : null }
+      : {}),
+  };
+
+  const doc = await Product.findByIdAndUpdate(id, updateDoc, { new: true, runValidators: true })
+    .populate('brandId', 'name code slug manufacturer category logo isActive')
+    .populate('categoryId', 'name slug status pageKey');
   if (!doc) throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
-  return doc;
+  return shapePopulatedProduct(doc);
 };
 
 export const setProductActiveState = async (id: string, isActive: boolean) => {
-  const doc = await Product.findByIdAndUpdate(id, { isActive }, { new: true });
+  const doc = await Product.findByIdAndUpdate(id, { isActive }, { new: true })
+    .populate('brandId', 'name code slug manufacturer category logo isActive')
+    .populate('categoryId', 'name slug status pageKey');
   if (!doc) throw new ApiError(httpStatus.NOT_FOUND, 'Product not found');
-  return doc;
+  return shapePopulatedProduct(doc);
 };
 
 export const importProducts = async (payload: any) => {

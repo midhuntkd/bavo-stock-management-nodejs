@@ -7,7 +7,7 @@ const productSchema = new Schema<IProductDoc, IProductModel>(
     slug: { type: String, required: true, trim: true, unique: true, lowercase: true },
     sku: { type: String, required: true, trim: true, uppercase: true, unique: true },
     barcode: { type: String, trim: true },
-    categoryId: { type: String, trim: true },
+    categoryId: { type: Schema.Types.ObjectId, ref: 'Category', index: true },
     manufacturer: { type: String, trim: true },
     brandId: { type: Schema.Types.ObjectId, ref: 'Brand', index: true },
     unit: { type: String, enum: ['g', 'kg', 'ml', 'l', 'pc', 'pack', 'box'], required: true },
@@ -32,6 +32,7 @@ productSchema.index({ sku: 1 }, { unique: true });
 productSchema.index({ slug: 1 }, { unique: true });
 productSchema.index({ isActive: 1, name: 1 });
 productSchema.index({ brandId: 1 });
+productSchema.index({ categoryId: 1 });
 
 const Product = mongoose.model<IProductDoc, IProductModel>('Product', productSchema);
 export default Product;

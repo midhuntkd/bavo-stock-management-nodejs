@@ -7,8 +7,8 @@ export interface IProduct {
   slug: string;
   sku: string;
   barcode?: string;
-  categoryId?: string;
-  category?: string;
+  categoryId?: Types.ObjectId;
+  category?: Types.ObjectId | string;
   manufacturer?: string;
   brandId?: Types.ObjectId;
   unit: ProductUnit;
