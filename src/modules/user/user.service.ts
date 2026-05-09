@@ -149,6 +149,7 @@ export const updateUser = async (id: string, payload: UpdateUserDTO, actorId: st
 
   if (typeof payload.name !== 'undefined') user.name = payload.name;
   if (typeof payload.email !== 'undefined') user.email = payload.email;
+  if (typeof payload.password === 'string' && payload.password.trim()) user.password = payload.password;
   if (typeof payload.phone !== 'undefined') user.phone = payload.phone;
   const permissions = normalizePermissionCodes(payload);
   if (typeof permissions !== 'undefined') user.permissions = permissions;

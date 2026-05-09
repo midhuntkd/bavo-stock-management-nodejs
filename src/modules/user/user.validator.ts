@@ -32,6 +32,7 @@ export const update = validate({
   body: Joi.object({
     name: Joi.string(),
     email: Joi.string().email(),
+    password: Joi.alternatives().try(Joi.string().min(8), Joi.string().allow(''), Joi.valid(null)),
     phone: Joi.string().allow('', null),
     roleCode: Joi.string(),
     permissions: Joi.array().items(Joi.string()),

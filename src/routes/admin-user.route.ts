@@ -137,6 +137,7 @@ router.get('/:id', authorizePermissions('user.view'), UserValidator.idParam, Use
  *         application/json:
  *           example:
  *             name: "Updated Admin"
+ *             password: "NewStrong@123"
  *             isActive: true
  *             permissionsCsv: "stock.view,stock.update"
  *     responses:
