@@ -46,6 +46,19 @@ router.post('/import', authorizePermissions('product.create'), uploadJson.single
 
 /**
  * @openapi
+ * /products/sync-bavo-admin:
+ *   post:
+ *     tags: [Products]
+ *     summary: Sync products from Bavo Admin stock feed
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Products synced
+ */
+router.post('/sync-bavo-admin', authorizePermissions('product.sync'), ProductValidator.syncFromBavoAdmin, ProductController.syncFromBavoAdmin);
+
+/**
+ * @openapi
  * /products:
  *   post:
  *     tags: [Products]

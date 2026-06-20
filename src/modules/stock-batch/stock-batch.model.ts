@@ -20,6 +20,10 @@ const stockBatchSchema = new Schema<IStockBatchDoc, IStockBatchModel>(
     status: { type: String, enum: ['active', 'expired', 'damaged', 'blocked'], default: 'active', index: true },
     supplierId: { type: Schema.Types.ObjectId, ref: 'Supplier' },
     grnId: { type: Schema.Types.ObjectId, ref: 'GoodsReceiptNote' },
+    // Expiry markdown tracking
+    originalSalePrice: { type: Number, min: 0 },
+    markdownPercent: { type: Number, min: 0, max: 100, default: 0 },
+    markdownApplied: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }
 );

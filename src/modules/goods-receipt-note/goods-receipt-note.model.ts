@@ -29,6 +29,10 @@ const grnItemSchema = new Schema<IGoodsReceiptNoteItemDoc, IGoodsReceiptNoteItem
     expiryDate: { type: Date },
     receivedQty: { type: Number, required: true, min: 0 },
     freeQty: { type: Number, required: true, default: 0, min: 0 },
+    // For weight-based products: gross weight entered, tareWeight deducted, netWeight used for stock
+    grossWeight: { type: Number, min: 0 },
+    tareWeightDeducted: { type: Number, min: 0, default: 0 },
+    netWeight: { type: Number, min: 0 },
     unitCost: { type: Number, required: true, min: 0 },
     gstRate: { type: Number, required: true, min: 0 },
     mrp: { type: Number, required: true, min: 0 },

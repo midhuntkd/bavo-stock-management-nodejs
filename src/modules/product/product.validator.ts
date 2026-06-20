@@ -75,3 +75,7 @@ export const update = validate({
   }).min(1),
 });
 
+export const syncFromBavoAdmin = validate({
+  body: Joi.object({}).unknown(false),
+});
+

@@ -19,3 +19,9 @@ export const logout = validate({
     refreshToken: Joi.string().required(),
   }),
 });
+
+export const accessIdByEmail = validate({
+  body: Joi.object({
+    email: Joi.string().email().required(),
+  }),
+});

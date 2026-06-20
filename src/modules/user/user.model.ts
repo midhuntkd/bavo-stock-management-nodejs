@@ -1,10 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 import config from '../../configs/config';
 import { IUserDoc, IUserModel } from './user.interface';
 
 const userSchema = new Schema<IUserDoc, IUserModel>(
   {
+    accessId: { type: String, required: true, unique: true, default: randomUUID, index: true },
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, trim: true, lowercase: true, unique: true },
     password: { type: String, required: true, minlength: 8 },

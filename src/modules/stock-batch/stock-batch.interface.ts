@@ -20,6 +20,10 @@ export interface IStockBatch {
   status: StockBatchStatus;
   supplierId?: Types.ObjectId;
   grnId?: Types.ObjectId;
+  // Expiry markdown tracking
+  originalSalePrice?: number;
+  markdownPercent: number;
+  markdownApplied: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

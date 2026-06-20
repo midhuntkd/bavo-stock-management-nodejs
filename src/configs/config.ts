@@ -54,6 +54,10 @@ const envVarsSchema = Joi.object()
     AWS_ACCESS_KEY_ID: Joi.string().allow(''),
     AWS_SECRET_ACCESS_KEY: Joi.string().allow(''),
     AWS_S3_BUCKET: Joi.string().allow(''),
+    BAVO_ADMIN_STOCK_SYNC_URL: Joi.string().uri().default('https://api.bavoapp.in/api/v1/product/stock-sync'),
+    BAVO_ADMIN_STOCK_SYNC_USERNAME: Joi.string().default('stockadmin'),
+    BAVO_ADMIN_STOCK_SYNC_PASSWORD: Joi.string().default('Stock@321123!@'),
+    BAVO_ADMIN_STOCK_SYNC_TIMEOUT_MS: Joi.number().integer().min(1000).default(30000),
   })
   .unknown();
 
@@ -132,6 +136,14 @@ const config = {
     accessKeyId: envVars.AWS_ACCESS_KEY_ID,
     secretAccessKey: envVars.AWS_SECRET_ACCESS_KEY,
     s3Bucket: envVars.AWS_S3_BUCKET,
+  },
+  integrations: {
+    bavoAdminStockSync: {
+      url: envVars.BAVO_ADMIN_STOCK_SYNC_URL,
+      username: envVars.BAVO_ADMIN_STOCK_SYNC_USERNAME,
+      password: envVars.BAVO_ADMIN_STOCK_SYNC_PASSWORD,
+      timeoutMs: envVars.BAVO_ADMIN_STOCK_SYNC_TIMEOUT_MS,
+    },
   },
 };
 

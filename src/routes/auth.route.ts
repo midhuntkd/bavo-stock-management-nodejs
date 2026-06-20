@@ -118,6 +118,42 @@ router.post('/logout', AuthValidator.logout, AuthController.logout);
 
 /**
  * @openapi
+ * /auth/access-id:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Get user access ID by email
+ *     security:
+ *       - basicAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *           example:
+ *             email: "superadmin@example.com"
+ *     responses:
+ *       200:
+ *         description: Access ID fetched
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               message: "Access ID fetched successfully"
+ *               data:
+ *                 _id: "67d12ef0f3f7fdb2e0b18a11"
+ *                 email: "superadmin@example.com"
+ *                 accessId: "1d45bc1d-22c8-4421-9b77-3e3a421cb822"
+ */
+router.post('/access-id', AuthValidator.accessIdByEmail, AuthController.accessIdByEmail);
+
+/**
+ * @openapi
  * /auth/me:
  *   get:
  *     tags: [Auth]

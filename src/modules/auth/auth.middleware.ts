@@ -22,6 +22,16 @@ const getBearerToken = (req: Request) => {
   return token || null;
 };
 
+const getUserAccessId = (req: Request) => {
+  const accessIdHeader = req.headers['x-user-access-id'];
+  if (typeof accessIdHeader === 'string' && accessIdHeader.trim()) {
+    return accessIdHeader.trim();
+  }
+
+  const bearerValue = getBearerToken(req);
+  return bearerValue || null;
+};
+
 const isAuthDebugEnabled = () => process.env.AUTH_DEBUG === 'true';
 
 const logAuthDebug = (req: Request, payload: Record<string, unknown>) => {
@@ -132,6 +142,36 @@ export const authorizePermissions = (...requiredPermissions: string[]) =>
 
     return next();
   };
+
+export const authenticateUserAccessId = async (req: Request, _res: Response, next: NextFunction) => {
+  try {
+    const accessId = getUserAccessId(req);
+    if (!accessId) {
+      return next(new ApiError(httpStatus.UNAUTHORIZED, 'User access ID missing'));
+    }
+
+    const user = await UserService.findByAccessId(accessId);
+    if (!user || !user.isActive) {
+      return next(new ApiError(httpStatus.UNAUTHORIZED, 'Invalid user access ID'));
+    }
+
+    req.user = {
+      _id: String(user._id),
+      accessId: user.accessId,
+      name: user.name,
+      email: user.email,
+      roleId: String(user.roleId),
+      roleCode: user.roleCode as any,
+      permissions: [],
+      effectivePermissions: [],
+      isActive: user.isActive,
+    } as any;
+
+    return next();
+  } catch (_error: any) {
+    return next(new ApiError(httpStatus.UNAUTHORIZED, 'Authentication failed'));
+  }
+};
 
 const auth = (...allowedRoles: string[]) => [authenticate, authorizeRoles(...allowedRoles)];
 

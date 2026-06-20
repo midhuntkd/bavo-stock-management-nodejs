@@ -10,6 +10,7 @@
     "seed:permissions": "ts-node src/seeders/seed-permissions.ts",
     "seed:roles": "ts-node src/seeders/seed-roles.ts",
     "seed:super-admin": "ts-node src/seeders/seed-super-admin.ts",
+    "seed:user-access-ids": "ts-node src/seeders/seed-user-access-ids.ts",
     "seed:all": "ts-node src/seeders/seed-all.ts"
   },
   "license": "ISC",

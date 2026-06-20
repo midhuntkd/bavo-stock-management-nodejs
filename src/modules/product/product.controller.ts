@@ -37,3 +37,8 @@ export const setActiveState: RequestHandler = catchAsync(async (req, res) => {
   const data = await ProductService.setProductActiveState(String(req.params.id), Boolean(req.body.isActive));
   sendSuccess(res, 'Product status updated successfully', data);
 });
+
+export const syncFromBavoAdmin: RequestHandler = catchAsync(async (_req, res) => {
+  const data = await ProductService.syncProductsFromBavoAdmin();
+  sendSuccess(res, 'Products synced successfully from Bavo Admin', data);
+});

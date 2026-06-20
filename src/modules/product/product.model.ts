@@ -24,6 +24,10 @@ const productSchema = new Schema<IProductDoc, IProductModel>(
     batchEnabled: { type: Boolean, default: false },
     expiryEnabled: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
+    // Weight-based / loose item fields
+    weightBased: { type: Boolean, default: false },
+    tareWeight: { type: Number, min: 0, default: 0 },
+    minOrderQuantity: { type: Number, min: 0.0001, default: 1 },
   },
   { timestamps: true, versionKey: false }
 );

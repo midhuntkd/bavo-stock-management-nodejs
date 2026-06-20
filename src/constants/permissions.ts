@@ -48,6 +48,7 @@ export const PERMISSION_SEEDS: PermissionSeed[] = [
   { name: 'Product Create', code: 'product.create', module: 'product', description: 'Create products' },
   { name: 'Product Update', code: 'product.update', module: 'product', description: 'Update products' },
   { name: 'Product Delete', code: 'product.delete', module: 'product', description: 'Deactivate products' },
+  { name: 'Product Sync', code: 'product.sync', module: 'product', description: 'Sync products from Bavo Admin' },
 
   { name: 'Stock View', code: 'stock.view', module: 'stock', description: 'View stock summary' },
   { name: 'Stock Create', code: 'stock.create', module: 'stock', description: 'Create stock summary record' },
@@ -91,6 +92,11 @@ export const PERMISSION_SEEDS: PermissionSeed[] = [
   { name: 'Company Expense Delete', code: 'company-expense.delete', module: 'company-expense', description: 'Delete draft company expenses' },
   { name: 'Company Expense Confirm', code: 'company-expense.confirm', module: 'company-expense', description: 'Confirm company expenses' },
   { name: 'Company Expense Cancel', code: 'company-expense.cancel', module: 'company-expense', description: 'Cancel company expenses' },
+
+  { name: 'In Hand Amount View', code: 'in-hand-amount.view', module: 'in-hand-amount', description: 'View user in-hand amount records' },
+  { name: 'In Hand Amount Create', code: 'in-hand-amount.create', module: 'in-hand-amount', description: 'Create user in-hand amount records' },
+  { name: 'In Hand Amount Update', code: 'in-hand-amount.update', module: 'in-hand-amount', description: 'Update user in-hand amount records' },
+  { name: 'In Hand Amount Delete', code: 'in-hand-amount.delete', module: 'in-hand-amount', description: 'Delete user in-hand amount records' },
 
   { name: 'Account View', code: 'account.view', module: 'account', description: 'View company accounts' },
   { name: 'Account Create', code: 'account.create', module: 'account', description: 'Create company accounts' },

@@ -21,3 +21,8 @@ export const me: RequestHandler = catchAsync(async (req, res) => {
   const data = await AuthService.getMe(String(req.user?._id));
   sendSuccess(res, 'Profile fetched successfully', data);
 });
+
+export const accessIdByEmail: RequestHandler = catchAsync(async (req, res) => {
+  const data = await AuthService.getAccessIdByEmail(req.body.email, req.headers.authorization);
+  sendSuccess(res, 'Access ID fetched successfully', data);
+});

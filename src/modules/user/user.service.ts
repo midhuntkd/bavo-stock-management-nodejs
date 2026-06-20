@@ -10,6 +10,7 @@ import { ChangePasswordDTO, CreateUserDTO, ResetPasswordByEmailDTO, ResetPasswor
 
 const sanitizeUser = (user: any) => ({
   _id: String(user._id),
+  accessId: user.accessId,
   name: user.name,
   email: user.email,
   phone: user.phone,
@@ -241,4 +242,5 @@ export const changeOwnPassword = async (userId: string, payload: ChangePasswordD
 
 export const findByEmail = async (email: string) => User.findOne({ email: email.toLowerCase() });
 export const findById = async (id: string) => User.findById(id);
+export const findByAccessId = async (accessId: string) => User.findOne({ accessId });
 export const updateLastLoginAt = async (id: string) => User.findByIdAndUpdate(id, { lastLoginAt: new Date() }, { new: true });

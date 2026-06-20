@@ -25,6 +25,10 @@ export interface IProduct {
   batchEnabled: boolean;
   expiryEnabled: boolean;
   isActive: boolean;
+  // Weight-based / loose item support
+  weightBased: boolean;
+  tareWeight: number;
+  minOrderQuantity: number;
   createdAt: Date;
   updatedAt: Date;
 }

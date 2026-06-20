@@ -5,6 +5,36 @@ import { Token } from '../token';
 import { RoleService } from '../role';
 import * as UserService from '../user/user.service';
 
+const ACCESS_ID_BASIC_AUTH_USERNAME = 'stockadmin';
+const ACCESS_ID_BASIC_AUTH_PASSWORD = 'Stockadmin@142536!@#';
+
+const verifyAccessIdBasicAuth = (authorization?: string) => {
+  if (!authorization?.startsWith('Basic ')) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Basic authorization is required');
+  }
+
+  const encodedCredentials = authorization.slice('Basic '.length).trim();
+
+  let decodedCredentials = '';
+  try {
+    decodedCredentials = Buffer.from(encodedCredentials, 'base64').toString('utf8');
+  } catch (_error) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid basic authorization header');
+  }
+
+  const separatorIndex = decodedCredentials.indexOf(':');
+  if (separatorIndex === -1) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid basic authorization header');
+  }
+
+  const username = decodedCredentials.slice(0, separatorIndex);
+  const password = decodedCredentials.slice(separatorIndex + 1);
+
+  if (username !== ACCESS_ID_BASIC_AUTH_USERNAME || password !== ACCESS_ID_BASIC_AUTH_PASSWORD) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Invalid basic auth credentials');
+  }
+};
+
 export const loginWithEmailAndPassword = async (email: string, password: string) => {
   const user = await UserService.findByEmail(email);
 
@@ -80,5 +110,24 @@ export const getMe = async (userId: string) => {
     effectivePermissions: user.roleCode === 'super_admin' ? ['*'] : [...new Set([...rolePermissions, ...user.permissions])],
     isActive: user.isActive,
     lastLoginAt: user.lastLoginAt,
+  };
+};
+
+export const getAccessIdByEmail = async (email: string, authorization?: string) => {
+  verifyAccessIdBasicAuth(authorization);
+
+  const user = await UserService.findByEmail(email);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+
+  if (!user.isActive) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'User account is inactive');
+  }
+
+  return {
+    _id: String(user._id),
+    email: user.email,
+    accessId: user.accessId,
   };
 };

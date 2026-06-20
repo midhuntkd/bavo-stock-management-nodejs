@@ -1,5 +1,6 @@
 import httpStatus from 'http-status';
 import { Types } from 'mongoose';
+import config from '../../configs/config';
 import ApiError from '../errors/ApiError';
 import { getPagination } from '../utils';
 import { BrandService } from '../brand';
@@ -290,6 +291,157 @@ export const importProducts = async (payload: any) => {
     importedCount: imported.length,
     skippedCount: skipped.length,
     imported,
+    skipped,
+  };
+};
+
+type RemoteStockSyncProduct = {
+  name: string;
+  slug: string;
+  sku: string;
+  barcode?: string;
+  unit: string;
+  unitMeasurement?: string;
+  unitValue?: number;
+  availableQuantity?: number;
+  packSize?: string;
+  hsnCode?: string;
+  gstRate?: number;
+  mrp?: number;
+  salePrice?: number;
+  isActive?: boolean;
+};
+
+const normalizeStockSyncProduct = (item: RemoteStockSyncProduct) => {
+  const name = typeof item.name === 'string' ? item.name.trim() : '';
+  const slug =
+    typeof item.slug === 'string' && item.slug.trim()
+      ? item.slug.trim().toLowerCase()
+      : fallbackSlug(name);
+  const sku = typeof item.sku === 'string' ? item.sku.trim().toUpperCase() : '';
+  const unit = typeof item.unit === 'string' && allowedUnits.has(item.unit.trim().toLowerCase()) ? item.unit.trim().toLowerCase() : '';
+
+  if (!name) throw new ApiError(httpStatus.BAD_REQUEST, 'Missing name');
+  if (!slug) throw new ApiError(httpStatus.BAD_REQUEST, 'Missing slug');
+  if (!sku) throw new ApiError(httpStatus.BAD_REQUEST, 'Missing sku');
+  if (!unit) throw new ApiError(httpStatus.BAD_REQUEST, 'Missing or invalid unit');
+
+  const mrp = toNumber(item.mrp, 0);
+  const salePrice = toNumber(item.salePrice, mrp);
+
+  return {
+    name,
+    slug,
+    sku,
+    barcode: typeof item.barcode === 'string' ? item.barcode.trim() : undefined,
+    unit,
+    unitMeasurement: typeof item.unitMeasurement === 'string' ? item.unitMeasurement.trim() : undefined,
+    unitValue: typeof item.unitValue !== 'undefined' ? toNumber(item.unitValue, 0) : undefined,
+    availableQuantity: typeof item.availableQuantity !== 'undefined' ? toNumber(item.availableQuantity, 0) : 0,
+    packSize: typeof item.packSize === 'string' ? item.packSize.trim() : undefined,
+    hsnCode: typeof item.hsnCode === 'string' ? item.hsnCode.trim() : undefined,
+    gstRate: typeof item.gstRate !== 'undefined' ? toNumber(item.gstRate, 0) : 0,
+    mrp,
+    salePrice,
+    costPrice: salePrice,
+    trackInventory: true,
+    batchEnabled: false,
+    expiryEnabled: false,
+    isActive: Boolean(item.isActive),
+  };
+};
+
+const fetchBavoAdminStockProducts = async (): Promise<RemoteStockSyncProduct[]> => {
+  const { url, username, password, timeoutMs } = config.integrations.bavoAdminStockSync;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const basicToken = Buffer.from(`${username}:${password}`).toString('base64');
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Basic ${basicToken}`,
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new ApiError(response.status || httpStatus.BAD_GATEWAY, `Bavo Admin sync failed with status ${response.status}`);
+    }
+
+    const payload = await response.json();
+    if (!Array.isArray(payload)) {
+      throw new ApiError(httpStatus.BAD_GATEWAY, 'Bavo Admin sync returned invalid payload');
+    }
+
+    return payload as RemoteStockSyncProduct[];
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      throw new ApiError(httpStatus.GATEWAY_TIMEOUT, 'Bavo Admin sync request timed out');
+    }
+
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    throw new ApiError(httpStatus.BAD_GATEWAY, error?.message || 'Bavo Admin sync failed');
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+export const syncProductsFromBavoAdmin = async () => {
+  const remoteItems = await fetchBavoAdminStockProducts();
+  const created: Array<{ id: string; sku: string; slug: string }> = [];
+  const updated: Array<{ id: string; sku: string; slug: string }> = [];
+  const skipped: Array<{ index: number; sku?: string; slug?: string; reason: string }> = [];
+
+  for (const [index, rawItem] of remoteItems.entries()) {
+    try {
+      const normalized = normalizeStockSyncProduct(rawItem || ({} as RemoteStockSyncProduct));
+      const existing = await Product.findOne({ sku: normalized.sku });
+
+      if (existing) {
+        existing.mrp = normalized.mrp;
+        existing.salePrice = normalized.salePrice;
+        existing.availableQuantity = normalized.availableQuantity;
+        existing.hsnCode = normalized.hsnCode;
+        await existing.save();
+
+        updated.push({
+          id: String(existing._id),
+          sku: existing.sku,
+          slug: existing.slug,
+        });
+        continue;
+      }
+
+      const createdProduct = await createProduct(normalized);
+      created.push({
+        id: String((createdProduct as any)._id),
+        sku: createdProduct.sku,
+        slug: createdProduct.slug,
+      });
+    } catch (error: any) {
+      skipped.push({
+        index,
+        sku: typeof rawItem?.sku === 'string' ? rawItem.sku : undefined,
+        slug: typeof rawItem?.slug === 'string' ? rawItem.slug : undefined,
+        reason: error?.message || 'Sync failed',
+      });
+    }
+  }
+
+  return {
+    sourceUrl: config.integrations.bavoAdminStockSync.url,
+    total: remoteItems.length,
+    createdCount: created.length,
+    updatedCount: updated.length,
+    skippedCount: skipped.length,
+    created,
+    updated,
     skipped,
   };
 };

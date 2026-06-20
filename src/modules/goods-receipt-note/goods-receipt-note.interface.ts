@@ -23,6 +23,10 @@ export interface IGoodsReceiptNoteItem {
   expiryDate?: Date;
   receivedQty: number;
   freeQty: number;
+  // Weight-based product support
+  grossWeight?: number;
+  tareWeightDeducted?: number;
+  netWeight?: number;
   unitCost: number;
   gstRate: number;
   mrp: number;

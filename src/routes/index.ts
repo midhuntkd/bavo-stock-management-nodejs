@@ -20,12 +20,18 @@ import accountTransactionRoute from './account-transaction.route';
 import accountingRoute from './accounting.route';
 import companyExpenseRoute from './company-expense.route';
 import goodsReceiptNoteRoute from './goods-receipt-note.route';
+import inHandAmountRoute from './in-hand-amount.route';
+import inHandAmountFrontendRoute from './in-hand-amount-frontend.route';
 import investmentRoute from './investment.route';
 import personalSpendRoute from './personal-spend.route';
+import personalSpendFrontendRoute from './personal-spend-frontend.route';
 import reimbursementRoute from './reimbursement.route';
 import stockTransferRoute from './stock-transfer.route';
 import saleInvoiceRoute from './sale-invoice.route';
 import stockAdjustmentRoute from './stock-adjustment.route';
+import expiryMarkdownRoute from './expiry-markdown.route';
+import cycleCountRoute from './cycle-count.route';
+import replenishmentRoute from './replenishment.route';
 import docsRoute from './swagger.route';
 import healthRoute from './health.route';
 import config from '../configs/config';
@@ -53,13 +59,19 @@ const defaultIRoute = [
   { path: '/account-transactions', route: accountTransactionRoute },
   { path: '/accounting', route: accountingRoute },
   { path: '/company-expenses', route: companyExpenseRoute },
+  { path: '/in-hand-amounts', route: inHandAmountRoute },
+  { path: '/frontend/in-hand-amounts', route: inHandAmountFrontendRoute },
   { path: '/grn', route: goodsReceiptNoteRoute },
   { path: '/investments', route: investmentRoute },
   { path: '/personal-spends', route: personalSpendRoute },
+  { path: '/frontend/personal-spends', route: personalSpendFrontendRoute },
   { path: '/reimbursements', route: reimbursementRoute },
   { path: '/stock-transfers', route: stockTransferRoute },
   { path: '/sale-invoices', route: saleInvoiceRoute },
   { path: '/stock-adjustments', route: stockAdjustmentRoute },
+  { path: '/expiry-markdown', route: expiryMarkdownRoute },
+  { path: '/cycle-counts', route: cycleCountRoute },
+  { path: '/replenishment', route: replenishmentRoute },
   { path: '/health', route: healthRoute },
 ];
 

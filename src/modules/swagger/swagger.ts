@@ -22,6 +22,7 @@ const options: swaggerJSDoc.Options = {
       '/auth/login': { post: { tags: ['Auth'], summary: 'Login' } },
       '/auth/refresh-tokens': { post: { tags: ['Auth'], summary: 'Refresh tokens' } },
       '/auth/logout': { post: { tags: ['Auth'], summary: 'Logout' } },
+      '/auth/access-id': { post: { tags: ['Auth'], summary: 'Get user access ID by email' } },
       '/auth/me': { get: { tags: ['Auth'], summary: 'Get profile' } },
       '/auth/change-password': { post: { tags: ['Auth'], summary: 'Change own password' } },
       '/admin-users': {
@@ -83,6 +84,49 @@ const options: swaggerJSDoc.Options = {
       },
       '/personal-spends/{id}': { get: { tags: ['Accounting'], summary: 'Personal spend detail' }, patch: { tags: ['Accounting'], summary: 'Update personal spend' }, delete: { tags: ['Accounting'], summary: 'Delete personal spend' } },
       '/personal-spends/{id}/carry-forward': { patch: { tags: ['Accounting'], summary: 'Carry forward personal spend' } },
+      '/frontend/personal-spends': {
+        get: {
+          tags: ['Frontend Personal Spend'],
+          summary: 'List own personal spends by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+        post: {
+          tags: ['Frontend Personal Spend'],
+          summary: 'Create own personal spend by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+      },
+      '/frontend/personal-spends/{id}': {
+        get: {
+          tags: ['Frontend Personal Spend'],
+          summary: 'Get own personal spend by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+        patch: {
+          tags: ['Frontend Personal Spend'],
+          summary: 'Update own personal spend by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+        delete: {
+          tags: ['Frontend Personal Spend'],
+          summary: 'Delete own personal spend by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+      },
+      '/frontend/personal-spends/{id}/carry-forward': {
+        patch: {
+          tags: ['Frontend Personal Spend'],
+          summary: 'Carry forward own personal spend by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+      },
+      '/frontend/in-hand-amounts': {
+        post: {
+          tags: ['Frontend In Hand Amount'],
+          summary: 'Create own in-hand amount by access ID',
+          security: [{ userAccessIdAuth: [] }],
+        },
+      },
       '/reimbursements': {
         get: { tags: ['Accounting'], summary: 'List reimbursements' },
         post: { tags: ['Accounting'], summary: 'Create reimbursement' },
@@ -120,6 +164,7 @@ const options: swaggerJSDoc.Options = {
       '/categories/{id}': { get: { tags: ['Categories'], summary: 'Category detail' }, patch: { tags: ['Categories'], summary: 'Update category' } },
       '/categories/{id}/status': { patch: { tags: ['Categories'], summary: 'Update category status' } },
       '/products': { get: { tags: ['Products'], summary: 'List products' }, post: { tags: ['Products'], summary: 'Create product' } },
+      '/products/sync-bavo-admin': { post: { tags: ['Products'], summary: 'Sync products from Bavo Admin stock feed' } },
       '/products/{id}': { get: { tags: ['Products'], summary: 'Product detail' }, patch: { tags: ['Products'], summary: 'Update product' } },
       '/products/{id}/status': { patch: { tags: ['Products'], summary: 'Activate/deactivate product' } },
       '/stocks': { get: { tags: ['Stock'], summary: 'List stock summary' }, post: { tags: ['Stock'], summary: 'Create stock summary' } },
@@ -172,10 +217,20 @@ const options: swaggerJSDoc.Options = {
     },
     components: {
       securitySchemes: {
+        basicAuth: {
+          type: 'http',
+          scheme: 'basic',
+        },
         bearerAuth: {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
+        },
+        userAccessIdAuth: {
+          type: 'apiKey',
+          in: 'header',
+          name: 'x-user-access-id',
+          description: 'User access ID used by frontend personal spend APIs. You can also send it as Authorization: Bearer <accessId>.',
         },
       },
     },
