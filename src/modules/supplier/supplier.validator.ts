@@ -34,6 +34,13 @@ export const list = validate({
   }),
 });
 
+export const options = validate({
+  query: Joi.object({
+    search: Joi.string(),
+    isActive: Joi.string().valid('true', 'false'),
+  }),
+});
+
 export const update = validate({
   body: Joi.object({
     name: Joi.string(),

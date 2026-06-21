@@ -102,6 +102,9 @@ router.post('/', authorizePermissions('product.create'), ProductValidator.create
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - in: query
+ *         name: productId
+ *         schema: { type: string }
+ *       - in: query
  *         name: search
  *         schema: { type: string }
  *       - in: query

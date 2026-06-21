@@ -46,6 +46,26 @@ router.get('/', authorizePermissions('supplier.view'), SupplierValidator.list, S
 
 /**
  * @openapi
+ * /suppliers/options:
+ *   get:
+ *     tags: [Suppliers]
+ *     summary: List supplier options without pagination
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
+ *       - in: query
+ *         name: isActive
+ *         schema: { type: string, enum: ["true", "false"] }
+ *     responses:
+ *       200:
+ *         description: Supplier options fetched
+ */
+router.get('/options', authorizePermissions('supplier.view'), SupplierValidator.options, SupplierController.options);
+
+/**
+ * @openapi
  * /suppliers/{id}:
  *   get:
  *     tags: [Suppliers]

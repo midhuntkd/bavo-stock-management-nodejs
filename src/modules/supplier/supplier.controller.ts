@@ -12,6 +12,11 @@ export const list: RequestHandler = catchAsync(async (req, res) => {
   sendSuccess(res, 'Suppliers fetched successfully', data);
 });
 
+export const options: RequestHandler = catchAsync(async (req, res) => {
+  const data = await SupplierService.listSupplierOptions(req.query as Record<string, any>);
+  sendSuccess(res, 'Supplier options fetched successfully', data);
+});
+
 export const getById: RequestHandler = catchAsync(async (req, res) => {
   const data = await SupplierService.getSupplierById(String(req.params.id), req.query as Record<string, any>);
   sendSuccess(res, 'Supplier fetched successfully', data);

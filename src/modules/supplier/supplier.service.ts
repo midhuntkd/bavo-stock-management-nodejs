@@ -35,6 +35,23 @@ export const listSuppliers = async (query: Record<string, any>) => {
   };
 };
 
+export const listSupplierOptions = async (query: Record<string, any>) => {
+  const filter: any = {};
+  if (typeof query.isActive !== 'undefined') filter.isActive = query.isActive === 'true';
+  if (query.search) {
+    filter.$or = [
+      { name: { $regex: query.search, $options: 'i' } },
+      { code: { $regex: query.search, $options: 'i' } },
+      { contactPerson: { $regex: query.search, $options: 'i' } },
+    ];
+  }
+
+  return Supplier.find(filter)
+    .select({ _id: 1, name: 1, code: 1, contactPerson: 1, phone: 1, email: 1, gstNo: 1, address: 1, isActive: 1 })
+    .sort({ name: 1 })
+    .lean();
+};
+
 export const getSupplierById = async (id: string, query?: Record<string, any>) => {
   const doc = await Supplier.findById(id);
   if (!doc) throw new ApiError(httpStatus.NOT_FOUND, 'Supplier not found');

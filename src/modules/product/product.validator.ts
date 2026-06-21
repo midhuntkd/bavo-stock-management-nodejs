@@ -37,6 +37,7 @@ export const list = validate({
   query: Joi.object({
     page: Joi.number().integer().min(1),
     limit: Joi.number().integer().min(1).max(500),
+    productId: objectId,
     search: Joi.string(),
     brandId: objectId,
     categoryId: objectId,

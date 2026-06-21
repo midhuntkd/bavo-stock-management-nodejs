@@ -169,6 +169,7 @@ export const listProducts = async (query: Record<string, any>) => {
   const { page, limit, skip } = getPagination(query);
   const filter: any = {};
 
+  if (query.productId) filter._id = query.productId;
   const categoryId = extractOid(query.category) || extractOid(query.categoryId);
   if (query.brandId) filter.brandId = query.brandId;
   if (categoryId) filter.categoryId = categoryId;

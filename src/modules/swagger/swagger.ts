@@ -153,6 +153,7 @@ const options: swaggerJSDoc.Options = {
       '/warehouse-locations/{id}': { patch: { tags: ['Warehouse Locations'], summary: 'Update location' } },
       '/warehouse-locations/{id}/status': { patch: { tags: ['Warehouse Locations'], summary: 'Activate/deactivate location' } },
       '/suppliers': { get: { tags: ['Suppliers'], summary: 'List suppliers' }, post: { tags: ['Suppliers'], summary: 'Create supplier' } },
+      '/suppliers/options': { get: { tags: ['Suppliers'], summary: 'List supplier options without pagination' } },
       '/suppliers/{id}': { get: { tags: ['Suppliers'], summary: 'Supplier detail' }, patch: { tags: ['Suppliers'], summary: 'Update supplier' } },
       '/suppliers/{id}/status': { patch: { tags: ['Suppliers'], summary: 'Activate/deactivate supplier' } },
       '/brands': { get: { tags: ['Brands'], summary: 'List brands' }, post: { tags: ['Brands'], summary: 'Create brand' } },
