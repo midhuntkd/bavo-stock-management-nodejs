@@ -164,7 +164,7 @@ const options: swaggerJSDoc.Options = {
       '/categories': { get: { tags: ['Categories'], summary: 'List categories' }, post: { tags: ['Categories'], summary: 'Create category' } },
       '/categories/{id}': { get: { tags: ['Categories'], summary: 'Category detail' }, patch: { tags: ['Categories'], summary: 'Update category' } },
       '/categories/{id}/status': { patch: { tags: ['Categories'], summary: 'Update category status' } },
-      '/products': { get: { tags: ['Products'], summary: 'List products' }, post: { tags: ['Products'], summary: 'Create product' } },
+      '/products': { get: { tags: ['Products'], summary: 'List products with search and status filters' }, post: { tags: ['Products'], summary: 'Create product' } },
       '/products/sync-bavo-admin': { post: { tags: ['Products'], summary: 'Sync products from Bavo Admin stock feed' } },
       '/products/{id}': { get: { tags: ['Products'], summary: 'Product detail' }, patch: { tags: ['Products'], summary: 'Update product' } },
       '/products/{id}/status': { patch: { tags: ['Products'], summary: 'Activate/deactivate product' } },

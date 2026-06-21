@@ -123,6 +123,9 @@ router.post('/', authorizePermissions('product.create'), ProductValidator.create
  *         name: isActive
  *         schema: { type: string, enum: ["true", "false"] }
  *       - in: query
+ *         name: status
+ *         schema: { type: string, enum: ["active", "inactive"] }
+ *       - in: query
  *         name: batchEnabled
  *         schema: { type: string, enum: ["true", "false"] }
  *       - in: query

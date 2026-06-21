@@ -175,6 +175,7 @@ export const listProducts = async (query: Record<string, any>) => {
   if (categoryId) filter.categoryId = categoryId;
   if (query.barcode) filter.barcode = query.barcode;
   if (typeof query.isActive !== 'undefined') filter.isActive = query.isActive === 'true';
+  if (typeof query.status !== 'undefined') filter.isActive = query.status === 'active';
   if (typeof query.batchEnabled !== 'undefined') filter.batchEnabled = query.batchEnabled === 'true';
   if (typeof query.expiryEnabled !== 'undefined') filter.expiryEnabled = query.expiryEnabled === 'true';
   if (query.search) {

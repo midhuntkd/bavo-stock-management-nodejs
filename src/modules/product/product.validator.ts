@@ -44,6 +44,7 @@ export const list = validate({
     category: objectId,
     barcode: Joi.string(),
     isActive: Joi.string().valid('true', 'false'),
+    status: Joi.string().valid('active', 'inactive'),
     batchEnabled: Joi.string().valid('true', 'false'),
     expiryEnabled: Joi.string().valid('true', 'false'),
   }),
